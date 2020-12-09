@@ -1,6 +1,6 @@
 {
   "name": "rbxts-transform-env",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Transformer for Roblox TypeScript compiler that allows getting values of process.env as string literals",
   "main": "out/index.js",
   "scripts": {
