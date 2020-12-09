@@ -51,13 +51,22 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 					factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
 				);
 			} else if (value) {
-				return factory.createStringLiteral(value);
+				return factory.createAsExpression(
+					factory.createStringLiteral(value),
+					factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+				);
 			}
 		} else if (litType.kind === ts.SyntaxKind.NumberKeyword && value?.match(jsNumber)) {
 			if (elseExpression && ts.isNumericLiteral(elseExpression)) {
-				return factory.createNumericLiteral(value ?? elseExpression.text);
+				return factory.createAsExpression(
+					factory.createNumericLiteral(value ?? elseExpression.text),
+					factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+				);
 			} else if (value) {
-				return factory.createNumericLiteral(value);
+				return factory.createAsExpression(
+					factory.createNumericLiteral(value),
+					factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+				);
 			}
 		} else if (litType.kind === ts.SyntaxKind.BooleanKeyword) {
 			if (value !== undefined) {
