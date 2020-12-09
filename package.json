@@ -1,0 +1,27 @@
+{
+  "name": "rbxts-transform-env",
+  "version": "0.0.1",
+  "description": "Transformer for Roblox TypeScript compiler that allows getting values of process.env as string literals",
+  "main": "out/index.js",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roblox-aurora/rbxts-transform-env.git"
+  },
+  "keywords": [],
+  "author": "vorlias",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/roblox-aurora/rbxts-transform-env/issues"
+  },
+  "homepage": "https://github.com/roblox-aurora/rbxts-transform-env#readme",
+  "dependencies": {
+    "typescript": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.11"
+  }
+}
