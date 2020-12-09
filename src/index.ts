@@ -33,6 +33,8 @@ function log(message: string) {
 	}
 }
 
+const jsNumber = /^(\d+|0x[0-9A-Fa-f]+|[^_][0-9_]+[^_])$/;
+
 function transformLiteral(program: ts.Program, call: ts.CallExpression, name: string, elseExpression?: ts.Expression) {
 	const { typeArguments } = call;
 	const value = process.env[name];
@@ -51,7 +53,7 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 			} else if (value) {
 				return factory.createStringLiteral(value);
 			}
-		} else if (litType.kind === ts.SyntaxKind.NumberKeyword) {
+		} else if (litType.kind === ts.SyntaxKind.NumberKeyword && value?.match(jsNumber)) {
 			if (elseExpression && ts.isNumericLiteral(elseExpression)) {
 				return factory.createNumericLiteral(value ?? elseExpression.text);
 			} else if (value) {
@@ -59,8 +61,8 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 			}
 		} else if (litType.kind === ts.SyntaxKind.BooleanKeyword) {
 			if (value !== undefined) {
-				return value !== "false" ? factory.createFalse() : factory.createTrue();
-			} else if (elseExpression && ts.isLiteralTypeNode(elseExpression)) {
+				return value !== "false" ? factory.createTrue() : factory.createFalse();
+			} else if (elseExpression) {
 				return elseExpression;
 			}
 		}
@@ -72,7 +74,7 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 		}
 	}
 
-	return [factory.createJSDocComment("Unable to find " + name), factory.createIdentifier("undefined")];
+	return factory.createIdentifier("undefined");
 }
 
 const sourceText = fs.readFileSync(path.join(__dirname, "..", "index.d.ts"), "utf8");
