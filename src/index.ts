@@ -97,6 +97,7 @@ function visitNode(node: ts.SourceFile, program: ts.Program): ts.SourceFile;
 function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined;
 function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined {
 	if (isEnvImportExpression(node)) {
+		log("Erased import statement");
 		return;
 	}
 
