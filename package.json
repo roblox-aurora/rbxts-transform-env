@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/roblox-aurora/rbxts-transform-env#readme",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "typescript": "^4.1.2"
   },
   "devDependencies": {

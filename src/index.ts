@@ -1,4 +1,6 @@
 import ts, { factory } from "typescript";
+import dotenv from "dotenv";
+import path from "path";
 
 function visitNodeAndChildren(
 	node: ts.SourceFile,
@@ -44,6 +46,17 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined {
     return node;
 }
 
-export default function transform(program: ts.Program) {
+export default function transform(program: ts.Program, args: {files?: string[]}) {
+	// load any .env files
+	dotenv.config();
+
+	// Load user custom config paths (if user specifies)
+	const {files} = args;
+	if (files !== undefined) {
+		for (const filePath of files) {
+			dotenv.config({path: path.resolve(filePath)})
+		}
+	}
+
 	return (context: ts.TransformationContext) => (file: ts.SourceFile) => visitNodeAndChildren(file, program, context);
 }
