@@ -23,7 +23,7 @@
 		"plugins": [
 			{
 				"transform": "rbxts-transform-env",
-				"paths": [
+				"files": [
 					"example.env"
 				]
 			}
