@@ -9,3 +9,4 @@ export function makeHello(name: string) {
 const test = env<number>("TEST3");
 
 const test2 = env<string>("TEST", "boss") === "hi there";
+const test3 = env("TEST") === "TEST"

@@ -77,9 +77,15 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 		}
 	} else {
 		if (elseExpression && ts.isStringLiteral(elseExpression)) {
-			return factory.createStringLiteral(value ?? elseExpression.text);
+			return factory.createAsExpression(
+				factory.createStringLiteral(value ?? elseExpression.text),
+				factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+			);
 		} else if (value) {
-			return factory.createStringLiteral(value);
+			return factory.createAsExpression(
+				factory.createStringLiteral(value),
+				factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+			);
 		}
 	}
 
