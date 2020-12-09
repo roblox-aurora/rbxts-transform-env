@@ -1,6 +1,6 @@
 {
   "name": "@rbxts/transform-types-env",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The types for rbxts-transform-env",
   "main": "include/index.d.ts",
   "types": "include/index.d.ts",
