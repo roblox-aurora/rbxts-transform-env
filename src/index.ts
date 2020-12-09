@@ -33,19 +33,21 @@ function log(message: string) {
 	}
 }
 
-
 function transformLiteral(program: ts.Program, call: ts.CallExpression, name: string, elseExpression?: ts.Expression) {
-	const {typeArguments} = call;
+	const { typeArguments } = call;
 	const value = process.env[name];
 
-	log("TransformLiteral " + name + ": " + value ?? "undefined")
+	log("TransformLiteral " + name + ": " + value ?? "undefined");
 
-	// has type arguments? 
+	// has type arguments?
 	if (typeArguments) {
 		const [litType] = typeArguments;
 		if (litType.kind === ts.SyntaxKind.StringKeyword) {
 			if (elseExpression && ts.isStringLiteral(elseExpression)) {
-				return factory.createStringLiteral(value ?? elseExpression.text);
+				return factory.createAsExpression(
+					factory.createStringLiteral(value ?? elseExpression.text),
+					factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+				);
 			} else if (value) {
 				return factory.createStringLiteral(value);
 			}
@@ -57,9 +59,9 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 			}
 		} else if (litType.kind === ts.SyntaxKind.BooleanKeyword) {
 			if (value !== undefined) {
-				return value ? factory.createTrue() : factory.createFalse();
+				return value !== "false" ? factory.createFalse() : factory.createTrue();
 			} else if (elseExpression && ts.isLiteralTypeNode(elseExpression)) {
-				return factory.createFalse()
+				return elseExpression;
 			}
 		}
 	} else {
@@ -69,11 +71,11 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 			return factory.createStringLiteral(value);
 		}
 	}
-	
-	return factory.createIdentifier("undefined");
+
+	return [factory.createJSDocComment("Unable to find " + name), factory.createIdentifier("undefined")];
 }
 
-const sourceText = fs.readFileSync(path.join(__dirname, "..", 'index.d.ts'), 'utf8')
+const sourceText = fs.readFileSync(path.join(__dirname, "..", "index.d.ts"), "utf8");
 function isEnvModule(sourceFile: ts.SourceFile) {
 	return sourceFile.text === sourceText;
 }
@@ -83,18 +85,17 @@ function isEnvImportExpression(node: ts.Node, program: ts.Program) {
 		return false;
 	}
 
-
 	if (!node.importClause) {
 		return false;
 	}
 
-	const namedBindings = node.importClause.namedBindings
+	const namedBindings = node.importClause.namedBindings;
 	if (!node.importClause.name && !namedBindings) {
 		return false;
 	}
 
-	const importSymbol = program.getTypeChecker().getSymbolAtLocation(node.moduleSpecifier)
-	
+	const importSymbol = program.getTypeChecker().getSymbolAtLocation(node.moduleSpecifier);
+
 	if (!importSymbol || !isEnvModule(importSymbol.valueDeclaration.getSourceFile())) {
 		return false;
 	}
@@ -104,7 +105,7 @@ function isEnvImportExpression(node: ts.Node, program: ts.Program) {
 
 function visitNode(node: ts.SourceFile, program: ts.Program): ts.SourceFile;
 function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined;
-function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined {
+function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | undefined {
 	if (isEnvImportExpression(node, program)) {
 		log("Erased import statement");
 		return;
@@ -117,7 +118,7 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined {
 		}
 	}
 
-    return node;
+	return node;
 }
 
 interface TransformerConfiguration {
@@ -127,10 +128,9 @@ interface TransformerConfiguration {
 
 export default function transform(program: ts.Program, configuration: TransformerConfiguration) {
 	// Load user custom config paths (if user specifies)
-	const {files, verbose} = configuration;
+	const { files, verbose } = configuration;
 	// load any .env files
 	dotenv.config();
-
 
 	if (verbose !== undefined) {
 		verboseLogging = verbose;
@@ -139,11 +139,9 @@ export default function transform(program: ts.Program, configuration: Transforme
 	if (files !== undefined) {
 		for (const filePath of files) {
 			log("Loaded extra environment file: " + filePath);
-			dotenv.config({path: path.resolve(filePath)})
+			dotenv.config({ path: path.resolve(filePath) });
 		}
 	}
-
-
 
 	return (context: ts.TransformationContext) => (file: ts.SourceFile) => visitNodeAndChildren(file, program, context);
 }
