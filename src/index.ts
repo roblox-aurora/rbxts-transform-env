@@ -82,7 +82,6 @@ function isEnvImportExpression(node: ts.Node) {
 	const module = (node.moduleSpecifier as ts.StringLiteral).text;
 
 	log("checkEnv:" + module);
-	log(require.resolve(module));
 	try {
 		return indexJs === (
 			module.startsWith('.')
