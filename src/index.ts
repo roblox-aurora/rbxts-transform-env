@@ -1,6 +1,7 @@
 import ts, { factory } from "typescript";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 
 let verboseLogging = false;
 
@@ -72,31 +73,39 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 	return factory.createIdentifier("undefined");
 }
 
-const indexJs = path.join(__dirname, 'index.js');
-function isEnvImportExpression(node: ts.Node) {
+const sourceText = fs.readFileSync(path.join(__dirname, "..", 'index.d.ts'), 'utf8')
+function isEnvModule(sourceFile: ts.SourceFile) {
+	return sourceFile.text === sourceText;
+}
+
+function isEnvImportExpression(node: ts.Node, program: ts.Program) {
 	if (!ts.isImportDeclaration(node)) {
 		return false;
 	}
 
-	
-	const module = (node.moduleSpecifier as ts.StringLiteral).text;
 
-	log("checkEnv:" + module);
-	try {
-		return indexJs === (
-			module.startsWith('.')
-			  ? require.resolve(path.resolve(path.dirname(node.getSourceFile().fileName), module))
-			  : require.resolve(module)
-		  );
-	} catch (e) {
+	if (!node.importClause) {
 		return false;
 	}
+
+	const namedBindings = node.importClause.namedBindings
+	if (!node.importClause.name && !namedBindings) {
+		return false;
+	}
+
+	const importSymbol = program.getTypeChecker().getSymbolAtLocation(node.moduleSpecifier)
+	
+	if (!importSymbol || !isEnvModule(importSymbol.valueDeclaration.getSourceFile())) {
+		return false;
+	}
+
+	return true;
 }
 
 function visitNode(node: ts.SourceFile, program: ts.Program): ts.SourceFile;
 function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined;
 function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined {
-	if (isEnvImportExpression(node)) {
+	if (isEnvImportExpression(node, program)) {
 		log("Erased import statement");
 		return;
 	}
