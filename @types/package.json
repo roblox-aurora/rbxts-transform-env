@@ -1,0 +1,10 @@
+{
+  "name": "@rbxts/transform-types-env",
+  "version": "0.0.1",
+  "description": "The types for rbxts-transform-env",
+  "main": "index.d.ts",
+  "types": "index.d.ts",
+  "scripts": {},
+  "author": "vorlias",
+  "license": "MIT"
+}

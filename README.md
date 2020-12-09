@@ -18,5 +18,6 @@ Transformer for Roblox TypeScript compiler that allows getting values of process
 
 The types will be available under `@rbxts/transform-env-types` at some point. Until then you can do:
 ```ts
-declare function env(name: string, orElse?: string): string | undefined;
+declare function env(name: string): string | undefined;
+declare function env(name: string, defaultValue: string): string;
 ```
