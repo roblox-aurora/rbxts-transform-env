@@ -16,8 +16,29 @@ Transformer for Roblox TypeScript compiler that allows getting values of process
     }
 ```
 
-The types will be available under `@rbxts/transform-env-types` at some point. Until then you can do:
+For example, you have a `.env` file in your project directory as following:
+
+```env
+HELLO=Hello, World!
+NUMBER=20
+```
+
+Then in the typescript code, you can do 
 ```ts
-declare function env(name: string): string | undefined;
-declare function env(name: string, defaultValue: string): string;
+import { env } from "rbxts-transform-env";
+
+function sayHello() {
+    return env("HELLO");
+}
+
+const number = env<number>("NUMBER")
+```
+and it will compile to
+
+```lua
+local function sayHello()
+    return "Hello, World!"
+end
+
+local number = 20
 ```
