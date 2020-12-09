@@ -25,7 +25,8 @@
 				"transform": "rbxts-transform-env",
 				"files": [
 					"example.env"
-				]
+				],
+				"verbose": true
 			}
 		],
 

@@ -5,8 +5,7 @@ export function makeHello(name: string) {
 }
 
 const test2 = env<number>("TEST", 20)
-const test3 = env("TEST2");
+const test3 = env<boolean>("TEST2", false);
+const test4 = env("TEST");
 
-if (test2 === 20) {
-    print("20!!");
-}
+print("hi there");

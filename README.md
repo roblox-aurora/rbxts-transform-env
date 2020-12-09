@@ -42,3 +42,5 @@ end
 
 local number = 20
 ```
+
+If you want multiple ENV files, you can use the `files` argument in your plugin.
