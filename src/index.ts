@@ -6,41 +6,6 @@ import { EOL } from "os";
 
 let verboseLogging = false;
 
-function createFormatDiagnosticsHost(): ts.FormatDiagnosticsHost {
-	return {
-		getCurrentDirectory: () => process.cwd(),
-		getCanonicalFileName: (fileName) => fileName,
-		getNewLine: () => EOL,
-	};
-}
-
-function formatDiagnostics(diagnostics: ReadonlyArray<ts.Diagnostic>) {
-	return ts.formatDiagnosticsWithColorAndContext(diagnostics, createFormatDiagnosticsHost());
-}
-
-function createDiagnostic(
-	messageText: string,
-	category: ts.DiagnosticCategory = ts.DiagnosticCategory.Warning,
-	node?: ts.Node,
-): ts.Diagnostic {
-	return {
-		category,
-		code: (" rbxts-transform-env" as unknown) as number,
-		file: node?.getSourceFile(),
-		messageText,
-		start: node?.getStart(),
-		length: node?.getEnd(),
-	};
-}
-
-function warn(message: string, node?: ts.Node): void {
-	console.log(formatDiagnostics([createDiagnostic(message, ts.DiagnosticCategory.Warning, node)]));
-}
-
-function info(message: string, node?: ts.Node): void {
-	console.log(formatDiagnostics([createDiagnostic(message, ts.DiagnosticCategory.Message, node)]));
-}
-
 function visitNodeAndChildren(
 	node: ts.SourceFile,
 	program: ts.Program,
@@ -63,11 +28,9 @@ function visitNodeAndChildren(
 	);
 }
 
-
 function log(message: string) {
 	if (verboseLogging) {
-		info(message);
-		//process.stdout.write(`[rbxts-transform-env] ${message}\n`);
+		process.stdout.write(`[rbxts-transform-env] ${message}\n`);
 	}
 }
 
@@ -195,9 +158,8 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 			const [arg, equals, expression] = node.arguments;
 			if (ts.isStringLiteral(arg) && ts.isStringLiteral(equals)) {
 				if (!ts.isArrowFunction(expression) && !ts.isFunctionExpression(expression)) {
-					warn(
-						"Third argument to macro expects a function literal, got " + ts.SyntaxKind[expression.kind],
-						expression,
+					console.log(
+						"Third argument to macro expects a function literal, got " + ts.SyntaxKind[expression.kind]
 					);
 					return factory.createEmptyStatement();
 				}
