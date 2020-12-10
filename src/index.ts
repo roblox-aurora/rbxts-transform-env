@@ -35,6 +35,18 @@ function log(message: string) {
 
 const jsNumber = /^(\d+|0x[0-9A-Fa-f]+|[^_][0-9_]+[^_])$/;
 
+function isNumberUnionType(type: ts.TypeNode) {
+	return (
+		ts.isUnionTypeNode(type) && type.types.every((v) => ts.isLiteralTypeNode(v) && ts.isNumericLiteral(v.literal))
+	);
+}
+
+function isStringUnionType(type: ts.TypeNode) {
+	return (
+		ts.isUnionTypeNode(type) && type.types.every((v) => ts.isLiteralTypeNode(v) && ts.isStringLiteral(v.literal))
+	);
+}
+
 function transformLiteral(program: ts.Program, call: ts.CallExpression, name: string, elseExpression?: ts.Expression) {
 	const { typeArguments } = call;
 	const value = process.env[name];
@@ -44,7 +56,7 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 	// has type arguments?
 	if (typeArguments) {
 		const [litType] = typeArguments;
-		if (litType.kind === ts.SyntaxKind.StringKeyword) {
+		if (litType.kind === ts.SyntaxKind.StringKeyword || isStringUnionType(litType)) {
 			if (elseExpression && ts.isStringLiteral(elseExpression)) {
 				return factory.createAsExpression(
 					factory.createStringLiteral(value ?? elseExpression.text),
@@ -56,7 +68,10 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 					factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
 				);
 			}
-		} else if (litType.kind === ts.SyntaxKind.NumberKeyword && value?.match(jsNumber)) {
+		} else if (
+			(litType.kind === ts.SyntaxKind.NumberKeyword || isNumberUnionType(litType)) &&
+			value?.match(jsNumber)
+		) {
 			if (elseExpression && ts.isNumericLiteral(elseExpression)) {
 				return factory.createAsExpression(
 					factory.createNumericLiteral(value ?? elseExpression.text),
