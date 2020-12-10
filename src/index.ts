@@ -1,7 +1,9 @@
-import ts, { factory } from "typescript";
+import ts, { factory } from "byots";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { EOL } from "os";
+import warn from "./diagnostic";
 
 let verboseLogging = false;
 
@@ -145,10 +147,41 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 		return;
 	}
 
-	if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "env") {
-		const [arg, orElse] = node.arguments;
-		if (ts.isStringLiteral(arg)) {
-			return transformLiteral(program, node, arg.text, orElse);
+	if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+		if (node.expression.text === "env") {
+			const [arg, orElse] = node.arguments;
+			if (ts.isStringLiteral(arg)) {
+				return transformLiteral(program, node, arg.text, orElse);
+			}
+		}
+
+		if (node.expression.text === "ifEnv") {
+			const [arg, equals, expression] = node.arguments;
+			if (ts.isStringLiteral(arg) && ts.isStringLiteral(equals)) {
+				if (!ts.isArrowFunction(expression) && !ts.isFunctionExpression(expression)) {
+					warn(
+						"Third argument to macro expects a function literal, got " + ts.SyntaxKind[expression.kind],
+						expression,
+					);
+					return factory.createEmptyStatement();
+				}
+
+				const valueOf = process.env[arg.text] ?? "";
+				if (valueOf === equals.text) {
+					log("ifEnv for " + arg.text + " returned true in " + node.getSourceFile().fileName);
+					return factory.createCallExpression(
+						factory.createParenthesizedExpression(expression),
+						undefined,
+						[],
+					);
+				}
+
+				log("ifEnv for " + arg.text + " did not match " + equals.text);
+			} else {
+				console.error("ifEnv contains invalid arguments");
+			}
+
+			return factory.createEmptyStatement();
 		}
 	}
 
