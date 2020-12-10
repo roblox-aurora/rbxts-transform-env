@@ -3,9 +3,43 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { EOL } from "os";
-import warn, { info } from "./diagnostic";
 
 let verboseLogging = false;
+
+function createFormatDiagnosticsHost(): ts.FormatDiagnosticsHost {
+	return {
+		getCurrentDirectory: () => process.cwd(),
+		getCanonicalFileName: (fileName) => fileName,
+		getNewLine: () => EOL,
+	};
+}
+
+function formatDiagnostics(diagnostics: ReadonlyArray<ts.Diagnostic>) {
+	return ts.formatDiagnosticsWithColorAndContext(diagnostics, createFormatDiagnosticsHost());
+}
+
+function createDiagnostic(
+	messageText: string,
+	category: ts.DiagnosticCategory = ts.DiagnosticCategory.Warning,
+	node?: ts.Node,
+): ts.Diagnostic {
+	return {
+		category,
+		code: (" rbxts-transform-env" as unknown) as number,
+		file: node?.getSourceFile(),
+		messageText,
+		start: node?.getStart(),
+		length: node?.getEnd(),
+	};
+}
+
+function warn(message: string, node?: ts.Node): void {
+	console.log(formatDiagnostics([createDiagnostic(message, ts.DiagnosticCategory.Warning, node)]));
+}
+
+function info(message: string, node?: ts.Node): void {
+	console.log(formatDiagnostics([createDiagnostic(message, ts.DiagnosticCategory.Message, node)]));
+}
 
 function visitNodeAndChildren(
 	node: ts.SourceFile,
@@ -28,6 +62,7 @@ function visitNodeAndChildren(
 		context,
 	);
 }
+
 
 function log(message: string) {
 	if (verboseLogging) {
