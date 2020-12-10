@@ -1,8 +1,8 @@
-import ts, { factory } from "byots";
+import ts, { factory } from "typescript";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
-import { EOL } from "os";
+import colors from "colors";
 
 let verboseLogging = false;
 
@@ -32,6 +32,10 @@ function log(message: string) {
 	if (verboseLogging) {
 		process.stdout.write(`[rbxts-transform-env] ${message}\n`);
 	}
+}
+
+function warn(message: string) {
+	process.stdout.write(`[rbxts-transform-env] ${colors.yellow(message)}\n`);
 }
 
 const jsNumber = /^(\d+|0x[0-9A-Fa-f]+|[^_][0-9_]+[^_])$/;
@@ -158,9 +162,7 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 			const [arg, equals, expression] = node.arguments;
 			if (ts.isStringLiteral(arg) && ts.isStringLiteral(equals)) {
 				if (!ts.isArrowFunction(expression) && !ts.isFunctionExpression(expression)) {
-					console.log(
-						"Third argument to macro expects a function literal, got " + ts.SyntaxKind[expression.kind]
-					);
+					warn("Third argument to macro expects a function literal, got " + ts.SyntaxKind[expression.kind]);
 					return factory.createEmptyStatement();
 				}
 

@@ -23,6 +23,5 @@ ifEnv("NODE_ENV", "development", function() {
 	print("Hi!");
 })
 
-ifEnv("NODE_ENV", "development", () => {
-	print("hi there!");
-})
+const test4 = () => {}
+ifEnv("NODE_ENV", "development", test4)
