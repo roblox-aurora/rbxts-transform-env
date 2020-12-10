@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { EOL } from "os";
-import warn from "./diagnostic";
+import warn, { info } from "./diagnostic";
 
 let verboseLogging = false;
 
@@ -31,7 +31,8 @@ function visitNodeAndChildren(
 
 function log(message: string) {
 	if (verboseLogging) {
-		process.stdout.write(`[rbxts-transform-env] ${message}\n`);
+		info(message);
+		//process.stdout.write(`[rbxts-transform-env] ${message}\n`);
 	}
 }
 

@@ -32,4 +32,8 @@ function warn(message: string, node?: ts.Node): void {
 	console.log(formatDiagnostics([createDiagnostic(message, ts.DiagnosticCategory.Warning, node)]));
 }
 
+export function info(message: string, node?: ts.Node): void {
+	console.log(formatDiagnostics([createDiagnostic(message, ts.DiagnosticCategory.Message, node)]));
+}
+
 export default warn;
