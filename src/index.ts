@@ -74,6 +74,8 @@ function transformLiteral(program: ts.Program, call: ts.CallExpression, name: st
 			} else if (elseExpression) {
 				return elseExpression;
 			}
+		} else {
+			log("TransformLiteralKind NotSupported? " + ts.SyntaxKind[litType.kind]);
 		}
 	} else {
 		if (elseExpression && ts.isStringLiteral(elseExpression)) {
