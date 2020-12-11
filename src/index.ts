@@ -4,6 +4,11 @@ import path from "path";
 import fs from "fs";
 import colors from "colors";
 
+const enum MacroIdentifier {
+	Env = "$env",
+	IfEnv = "$ifEnv",
+}
+
 let verboseLogging = false;
 
 function visitNodeAndChildren(
@@ -119,6 +124,7 @@ function isEnvModule(sourceFile: ts.SourceFile) {
 	return sourceFile.text === sourceText;
 }
 
+const imports = new Set<ts.SourceFile>();
 function isEnvImportExpression(node: ts.Node, program: ts.Program) {
 	if (!ts.isImportDeclaration(node)) {
 		return false;
@@ -139,6 +145,8 @@ function isEnvImportExpression(node: ts.Node, program: ts.Program) {
 		return false;
 	}
 
+	const source = node.getSourceFile();
+	if (!imports.has(source)) imports.add(source);
 	return true;
 }
 
@@ -150,25 +158,42 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 		return;
 	}
 
+	if (!imports.has(node.getSourceFile())) {
+		return node;
+	}
+
 	if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-		if (node.expression.text === "env") {
+		const { text: functionName } = node.expression;
+		if (functionName === MacroIdentifier.Env) {
 			const [arg, orElse] = node.arguments;
 			if (ts.isStringLiteral(arg)) {
 				return transformLiteral(program, node, arg.text, orElse);
 			}
 		}
 
-		if (node.expression.text === "ifEnv") {
+		if (functionName === MacroIdentifier.IfEnv) {
 			const [arg, equals, expression] = node.arguments;
 			if (ts.isStringLiteral(arg) && ts.isStringLiteral(equals)) {
 				if (!ts.isArrowFunction(expression) && !ts.isFunctionExpression(expression)) {
-					warn("Third argument to macro expects a function literal, got " + ts.SyntaxKind[expression.kind]);
+					warn(
+						"Third argument to " +
+							MacroIdentifier.IfEnv +
+							" expects a function literal, got " +
+							ts.SyntaxKind[expression.kind],
+					);
 					return factory.createEmptyStatement();
 				}
 
 				const valueOf = process.env[arg.text] ?? "";
 				if (valueOf === equals.text) {
-					log("ifEnv for " + arg.text + " returned true in " + node.getSourceFile().fileName);
+					log(
+						MacroIdentifier.IfEnv +
+							" for " +
+							arg.text +
+							" returned true in " +
+							node.getSourceFile().fileName,
+					);
+
 					return factory.createCallExpression(
 						factory.createParenthesizedExpression(expression),
 						undefined,
@@ -176,7 +201,7 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 					);
 				}
 
-				log("ifEnv for " + arg.text + " did not match " + equals.text);
+				log(MacroIdentifier.IfEnv + " for " + arg.text + " did not match " + equals.text);
 			} else {
 				console.error("ifEnv contains invalid arguments");
 			}

@@ -25,13 +25,13 @@ NUMBER=20
 
 Then in the typescript code, you can do 
 ```ts
-import { env } from "rbxts-transform-env";
+import { $env } from "rbxts-transform-env";
 
 function sayHello() {
-    return env("HELLO");
+    return $env("HELLO");
 }
 
-const number = env<number>("NUMBER")
+const number = $env<number>("NUMBER")
 ```
 and it will compile to
 
