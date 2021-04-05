@@ -22,9 +22,9 @@ export function $env<T extends boolean>(variable: string, defaultValue: T): T;
 
 /**
  * Macro for rendering a block of code if the variable matches the specified value
- * @param variable The environment variable
- * @param matches The value to match
- * @param fn The function containing the code to render
+ * @param envVar The environment variable
+ * @param matches The value(s) to match
+ * @param runMatched The function containing the code to render
  *
  * **The third argument MUST be an arrow function.**
  * e.g.
@@ -43,4 +43,5 @@ export function $env<T extends boolean>(variable: string, defaultValue: T): T;
  * ```
  * IF NODE_ENV is 'development', otherwise nothing will be emitted.
  */
-export function $ifEnv(variable: string, matches: string, fn: () => void): void;
+export function $ifEnv(envVar: string, matches: string, runMatched: () => void): void;
+export function $ifEnv(envVar: string, matches: readonly string[], runMatched: (matched: string) => void): void;

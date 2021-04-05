@@ -10,8 +10,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rbxts/compiler-types": "^1.0.0-beta.8.0",
-    "@rbxts/types": "^1.0.428"
+    "@rbxts/compiler-types": "^1.0.0-types.0",
+    "@rbxts/types": "^1.0.428",
+    "rbxts-transform-debug": "^0.1.0"
   },
   "dependencies": {
     "rbxts-transform-env": "file:.."

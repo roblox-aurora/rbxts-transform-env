@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import colors from "colors";
+import { assert } from "console";
+import { formatTransformerDebug, formatTransformerDiagnostic, formatTransformerWarning } from "./shared";
 
 const enum MacroIdentifier {
 	Env = "$env",
@@ -35,7 +37,7 @@ function visitNodeAndChildren(
 
 function log(message: string) {
 	if (verboseLogging) {
-		process.stdout.write(`[rbxts-transform-env] ${message}\n`);
+		console.log(formatTransformerDebug(message));
 	}
 }
 
@@ -150,28 +152,15 @@ function isEnvImportExpression(node: ts.Node, program: ts.Program) {
 	return true;
 }
 
-function visitNode(node: ts.SourceFile, program: ts.Program): ts.SourceFile;
-function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined;
-function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | undefined {
-	if (isEnvImportExpression(node, program)) {
-		log("Erased import statement");
-		return;
-	}
-
-	if (!imports.has(node.getSourceFile())) {
-		return node;
-	}
-
-	if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-		const { text: functionName } = node.expression;
-		if (functionName === MacroIdentifier.Env) {
+function handleEnvCallExpression(node: ts.CallExpression, program: ts.Program, name: string) {
+	switch (name) {
+		case MacroIdentifier.Env: {
 			const [arg, orElse] = node.arguments;
 			if (ts.isStringLiteral(arg)) {
 				return transformLiteral(program, node, arg.text, orElse);
 			}
 		}
-
-		if (functionName === MacroIdentifier.IfEnv) {
+		case MacroIdentifier.IfEnv: {
 			const [arg, equals, expression] = node.arguments;
 			if (ts.isStringLiteral(arg) && ts.isStringLiteral(equals)) {
 				if (!ts.isArrowFunction(expression) && !ts.isFunctionExpression(expression)) {
@@ -186,14 +175,6 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 
 				const valueOf = process.env[arg.text] ?? "";
 				if (valueOf === equals.text) {
-					log(
-						MacroIdentifier.IfEnv +
-							" for " +
-							arg.text +
-							" returned true in " +
-							node.getSourceFile().fileName,
-					);
-
 					return factory.createCallExpression(
 						factory.createParenthesizedExpression(expression),
 						undefined,
@@ -202,12 +183,73 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 				}
 
 				log(MacroIdentifier.IfEnv + " for " + arg.text + " did not match " + equals.text);
+			} else if (ts.isStringLiteral(arg) && ts.isArrayLiteralExpression(equals)) {
+				if (!ts.isArrowFunction(expression) && !ts.isFunctionExpression(expression)) {
+					throw formatTransformerDiagnostic(
+						"Third argument to " +
+							MacroIdentifier.IfEnv +
+							" expects a function literal, got " +
+							ts.SyntaxKind[expression.kind],
+						expression,
+					);
+				}
+
+				for (const element of equals.elements) {
+					if (ts.isStringLiteral(element)) {
+						const valueOf = process.env[arg.text] ?? "";
+						if (valueOf === element.text) {
+							return factory.createCallExpression(
+								factory.createParenthesizedExpression(expression),
+								undefined,
+								expression.parameters.length > 0 ? [element] : [],
+							);
+						}
+					}
+				}
+
+				return factory.createEmptyStatement();
 			} else {
-				console.error("ifEnv contains invalid arguments");
+				throw formatTransformerDiagnostic(`Invalid arguments to '${name}'`, node);
 			}
 
 			return factory.createEmptyStatement();
 		}
+	}
+}
+
+function visitCallExpression(node: ts.CallExpression, program: ts.Program) {
+	const typeChecker = program.getTypeChecker();
+	const signature = typeChecker.getResolvedSignature(node);
+	if (!signature) {
+		return node;
+	}
+	const { declaration } = signature;
+	if (!declaration || ts.isJSDocSignature(declaration) || !isEnvModule(declaration.getSourceFile())) {
+		return node;
+	}
+
+	const functionName = declaration.name && declaration.name.getText();
+	if (!functionName) {
+		return node;
+	}
+
+	return handleEnvCallExpression(node, program, functionName);
+}
+
+function visitNode(node: ts.SourceFile, program: ts.Program): ts.SourceFile;
+function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined;
+function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | undefined {
+	if (isEnvImportExpression(node, program)) {
+		log("Erased import statement");
+		return;
+	}
+
+	if (!imports.has(node.getSourceFile())) {
+		return node;
+	}
+
+	if (ts.isCallExpression(node)) {
+		return visitCallExpression(node, program);
 	}
 
 	return node;
@@ -230,10 +272,17 @@ export default function transform(program: ts.Program, configuration: Transforme
 
 	if (files !== undefined) {
 		for (const filePath of files) {
-			log("Loaded extra environment file: " + filePath);
+			console.log(formatTransformerDebug(`Loaded environment file: ${filePath}`));
 			dotenv.config({ path: path.resolve(filePath) });
 		}
 	}
 
-	return (context: ts.TransformationContext) => (file: ts.SourceFile) => visitNodeAndChildren(file, program, context);
+	return (context: ts.TransformationContext) => (file: ts.SourceFile) => {
+		const newSource = visitNodeAndChildren(file, program, context);
+		// if (verbose) {
+		// 	newSource.fileName = newSource.fileName.replace("([a-z]).(tsx*)$", "$1.emit.$2");
+		// 	program.emit(newSource);
+		// }
+		return newSource;
+	};
 }

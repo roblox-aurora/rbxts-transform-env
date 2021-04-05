@@ -27,7 +27,10 @@
 					"example.env"
 				],
 				"verbose": true
-			}
+			},
+			{
+				"transform": "rbxts-transform-debug"
+			},
 		],
 
 	}
