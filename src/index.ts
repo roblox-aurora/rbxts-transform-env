@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import ts, { factory } from "typescript";
-import dotenv from "dotenv";
+import dotenv, { config } from "dotenv";
 import path from "path";
 import fs from "fs";
 import colors from "colors";
 import { assert } from "console";
 import { formatTransformerDebug, formatTransformerDiagnostic, formatTransformerWarning } from "./shared";
+import { shorthandIfEnv } from "./shorthandIfEnv";
 
-const enum MacroIdentifier {
+export const enum MacroIdentifier {
 	Env = "$env",
 	IfEnv = "$ifEnv",
 }
@@ -17,20 +19,23 @@ function visitNodeAndChildren(
 	node: ts.SourceFile,
 	program: ts.Program,
 	context: ts.TransformationContext,
+	config: TransformerConfiguration,
 ): ts.SourceFile;
 function visitNodeAndChildren(
 	node: ts.Node,
 	program: ts.Program,
 	context: ts.TransformationContext,
+	config: TransformerConfiguration,
 ): ts.Node | undefined;
 function visitNodeAndChildren(
 	node: ts.Node,
 	program: ts.Program,
 	context: ts.TransformationContext,
+	config: TransformerConfiguration,
 ): ts.Node | undefined {
 	return ts.visitEachChild(
-		visitNode(node, program),
-		(childNode) => visitNodeAndChildren(childNode, program, context),
+		visitNode(node, program, config),
+		(childNode) => visitNodeAndChildren(childNode, program, context, config),
 		context,
 	);
 }
@@ -236,16 +241,37 @@ function visitCallExpression(node: ts.CallExpression, program: ts.Program) {
 	return handleEnvCallExpression(node, program, functionName);
 }
 
-function visitNode(node: ts.SourceFile, program: ts.Program): ts.SourceFile;
-function visitNode(node: ts.Node, program: ts.Program): ts.Node | undefined;
-function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | undefined {
-	if (isEnvImportExpression(node, program)) {
-		log("Erased import statement");
-		return;
+function visitNode(node: ts.SourceFile, program: ts.Program, config: TransformerConfiguration): ts.SourceFile;
+function visitNode(node: ts.Node, program: ts.Program, config: TransformerConfiguration): ts.Node | undefined;
+function visitNode(
+	node: ts.Node,
+	program: ts.Program,
+	config: TransformerConfiguration,
+): ts.Node | ts.Node[] | undefined {
+	if (ts.isImportDeclaration(node) && isEnvImportExpression(node, program)) {
+		log("Erased import statement " + node.getText());
+		return factory.updateImportDeclaration(
+			node,
+			undefined,
+			undefined,
+			node.importClause
+				? factory.updateImportClause(
+						node.importClause,
+						true,
+						node.importClause.name,
+						node.importClause.namedBindings,
+				  )
+				: undefined,
+			node.moduleSpecifier,
+		);
 	}
 
 	if (!imports.has(node.getSourceFile())) {
 		return node;
+	}
+
+	if (ts.isIfStatement(node) && config.EXPERIMENTAL_shortIfEnvStatement) {
+		return shorthandIfEnv(node);
 	}
 
 	if (ts.isCallExpression(node)) {
@@ -257,6 +283,7 @@ function visitNode(node: ts.Node, program: ts.Program): ts.Node | ts.Node[] | un
 
 interface TransformerConfiguration {
 	files?: string[];
+	EXPERIMENTAL_shortIfEnvStatement?: boolean;
 	verbose?: boolean;
 }
 
@@ -278,11 +305,7 @@ export default function transform(program: ts.Program, configuration: Transforme
 	}
 
 	return (context: ts.TransformationContext) => (file: ts.SourceFile) => {
-		const newSource = visitNodeAndChildren(file, program, context);
-		// if (verbose) {
-		// 	newSource.fileName = newSource.fileName.replace("([a-z]).(tsx*)$", "$1.emit.$2");
-		// 	program.emit(newSource);
-		// }
+		const newSource = visitNodeAndChildren(file, program, context, configuration);
 		return newSource;
 	};
 }
