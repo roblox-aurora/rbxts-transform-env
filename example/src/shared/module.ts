@@ -1,5 +1,5 @@
 import { $env, $ifEnv, $NODE_ENV } from "../../..";
-import {$dbg} from "rbxts-transform-debug";
+// import {$dbg} from "rbxts-transform-debug";
 
 export function makeHello(name: string) {
 	return $NODE_ENV === "development" ? `Testing ${$NODE_ENV}, yes?` : "no";
@@ -25,5 +25,5 @@ print("test");
 $ifEnv("NODE_ENV", ["development"], (value) => { print(value) });
 $ifEnv("NODE_ENV", "development", function() {
 	print("Hi!");
-	$dbg("Test");
+	// $dbg("Test");
 })

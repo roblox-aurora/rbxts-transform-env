@@ -148,7 +148,7 @@ function isEnvImportExpression(node: ts.Node, program: ts.Program) {
 
 	const importSymbol = program.getTypeChecker().getSymbolAtLocation(node.moduleSpecifier);
 
-	if (!importSymbol || !isEnvModule(importSymbol.valueDeclaration.getSourceFile())) {
+	if (!importSymbol || !isEnvModule(importSymbol.valueDeclaration!.getSourceFile())) {
 		return false;
 	}
 
@@ -175,7 +175,7 @@ function handleEnvCallExpression(node: ts.CallExpression, program: ts.Program, n
 							" expects a function literal, got " +
 							ts.SyntaxKind[expression.kind],
 					);
-					return factory.createEmptyStatement();
+					return undefined;
 				}
 
 				const valueOf = process.env[arg.text] ?? "";
@@ -212,12 +212,12 @@ function handleEnvCallExpression(node: ts.CallExpression, program: ts.Program, n
 					}
 				}
 
-				return factory.createEmptyStatement();
+				return undefined;
 			} else {
 				throw formatTransformerDiagnostic(`Invalid arguments to '${name}'`, node);
 			}
 
-			return factory.createEmptyStatement();
+			return undefined;
 		}
 	}
 }
