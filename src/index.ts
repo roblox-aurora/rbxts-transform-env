@@ -175,7 +175,7 @@ function handleEnvCallExpression(node: ts.CallExpression, program: ts.Program, n
 							" expects a function literal, got " +
 							ts.SyntaxKind[expression.kind],
 					);
-					return undefined;
+					return factory.createVoidExpression(factory.createIdentifier("undefined"));
 				}
 
 				const valueOf = process.env[arg.text] ?? "";
@@ -212,12 +212,12 @@ function handleEnvCallExpression(node: ts.CallExpression, program: ts.Program, n
 					}
 				}
 
-				return undefined;
+				return factory.createVoidExpression(factory.createIdentifier("undefined"));
 			} else {
 				throw formatTransformerDiagnostic(`Invalid arguments to '${name}'`, node);
 			}
 
-			return undefined;
+			return factory.createVoidExpression(factory.createIdentifier("undefined"));
 		}
 	}
 }

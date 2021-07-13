@@ -27,3 +27,5 @@ $ifEnv("NODE_ENV", "development", function() {
 	print("Hi!");
 	// $dbg("Test");
 })
+
+$ifEnv("NODE_ENV", "blah", () => {})
