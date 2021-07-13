@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import ts, { factory } from "typescript";
-import dotenv, { config } from "dotenv";
+import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import colors from "colors";
-import { assert } from "console";
-import { formatTransformerDebug, formatTransformerDiagnostic, formatTransformerWarning } from "./shared";
-import { shorthandIfEnv } from "./shorthandIfEnv";
+import { formatTransformerDebug, formatTransformerDiagnostic } from "./shared";
+import { shorthandConditionalIfEnv, shorthandIfEnv } from "./shorthandIfEnv";
 
 export const enum MacroIdentifier {
 	Env = "$env",
+	NodeEnv = "$NODE_ENV",
 	IfEnv = "$ifEnv",
 }
 
@@ -64,7 +64,7 @@ function isStringUnionType(type: ts.TypeNode) {
 	);
 }
 
-function transformLiteral(program: ts.Program, call: ts.CallExpression, name: string, elseExpression?: ts.Expression) {
+function transformLiteral(call: ts.CallExpression, name: string, elseExpression?: ts.Expression) {
 	const { typeArguments } = call;
 	const value = process.env[name];
 
@@ -162,7 +162,7 @@ function handleEnvCallExpression(node: ts.CallExpression, program: ts.Program, n
 		case MacroIdentifier.Env: {
 			const [arg, orElse] = node.arguments;
 			if (ts.isStringLiteral(arg)) {
-				return transformLiteral(program, node, arg.text, orElse);
+				return transformLiteral(node, arg.text, orElse);
 			}
 		}
 		case MacroIdentifier.IfEnv: {
@@ -270,24 +270,35 @@ function visitNode(
 		return node;
 	}
 
-	if (ts.isIfStatement(node) && config.EXPERIMENTAL_shortIfEnvStatement) {
-		return shorthandIfEnv(node);
+	if (ts.isIfStatement(node) && config.shortcircuitEnvConditionals) {
+		return shorthandIfEnv(node, config);
+	}
+
+	if (ts.isConditionalExpression(node) && config.shortcircuitEnvConditionals) {
+		return shorthandConditionalIfEnv(node, config);
 	}
 
 	if (ts.isCallExpression(node)) {
 		return visitCallExpression(node, program);
 	}
 
+	if (ts.isIdentifier(node) && !ts.isImportSpecifier(node.parent) && node.text === MacroIdentifier.NodeEnv) {
+		return factory.createStringLiteral(process.env.NODE_ENV ?? config.defaultEnvironment);
+	}
+
 	return node;
 }
 
-interface TransformerConfiguration {
+export interface TransformerConfiguration {
 	files?: string[];
-	EXPERIMENTAL_shortIfEnvStatement?: boolean;
+	shortcircuitEnvConditionals?: boolean;
+	defaultEnvironment: string;
 	verbose?: boolean;
 }
 
-export default function transform(program: ts.Program, configuration: TransformerConfiguration) {
+export default function transform(program: ts.Program, userConfiguration: Partial<TransformerConfiguration>) {
+	const configuration = { defaultEnvironment: "production", ...userConfiguration };
+
 	// Load user custom config paths (if user specifies)
 	const { files, verbose } = configuration;
 	// load any .env files

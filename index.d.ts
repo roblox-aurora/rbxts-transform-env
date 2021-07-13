@@ -45,3 +45,8 @@ export function $env<T extends boolean>(variable: string, defaultValue: T): T;
  */
 export function $ifEnv(envVar: string, matches: string, runMatched: () => void): void;
 export function $ifEnv(envVar: string, matches: readonly string[], runMatched: (matched: string) => void): void;
+
+/**
+ * Returns the `NODE_ENV` variable
+ */
+export const $NODE_ENV: string;

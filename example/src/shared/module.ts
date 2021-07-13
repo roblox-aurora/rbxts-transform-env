@@ -1,14 +1,8 @@
-import { $env, $ifEnv } from "../../..";
+import { $env, $ifEnv, $NODE_ENV } from "../../..";
 import {$dbg} from "rbxts-transform-debug";
 
 export function makeHello(name: string) {
-	if ($env<string>("NODE_ENV", "development") === "development") {
-		return name;
-	} else {
-		return "Not matching";
-	}
-
-	return undefined;
+	return $NODE_ENV === "development" ? `Testing ${$NODE_ENV}, yes?` : "no";
 }
 
 const test = $env<number>("TEST3");
@@ -22,6 +16,9 @@ if ($env<string>("NODE_ENV", "development") === "development") {
 	print("not matching");
 }
 
+if ($NODE_ENV === "development") {
+	print("hi NODE_ENV");
+}
 
 print("test");
 
