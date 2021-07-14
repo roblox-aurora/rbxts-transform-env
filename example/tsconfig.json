@@ -29,9 +29,9 @@
 				"shortcircuitEnvConditionals": true,
 				"verbose": true
 			},
-			{
-				"transform": "rbxts-transform-debug"
-			},
+			// {
+			// 	"transform": "rbxts-transform-debug"
+			// },
 		],
 
 	}

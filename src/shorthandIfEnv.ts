@@ -19,7 +19,9 @@ export function shorthandConditionalIfEnv(node: ts.ConditionalExpression, config
 			if (ts.isStringLiteral(envVar)) {
 				const valueOf =
 					process.env[envVar.text] ??
-					(ts.isStringLiteral(defaultValue) ? defaultValue.text : config.defaultEnvironment);
+					(defaultValue !== undefined && ts.isStringLiteral(defaultValue)
+						? defaultValue.text
+						: config.defaultEnvironment);
 				if (ts.isStringLiteral(right)) {
 					if (valueOf === right.text) {
 						return whenTrue;
@@ -60,7 +62,9 @@ export function shorthandIfEnv(node: ts.IfStatement, config: TransformerConfigur
 			if (ts.isStringLiteral(envVar)) {
 				const valueOf =
 					process.env[envVar.text] ??
-					(ts.isStringLiteral(defaultValue) ? defaultValue.text : config.defaultEnvironment);
+					(defaultValue !== undefined && ts.isStringLiteral(defaultValue)
+						? defaultValue.text
+						: config.defaultEnvironment);
 				if (ts.isStringLiteral(right)) {
 					if (valueOf === right.text) {
 						return thenStatement;
