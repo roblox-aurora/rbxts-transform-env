@@ -263,6 +263,7 @@ function visitNode(
 				  )
 				: undefined,
 			node.moduleSpecifier,
+			undefined,
 		);
 	}
 
