@@ -16,9 +16,9 @@
 export function $env<T extends string = string>(variable: string): T | undefined;
 export function $env<T extends string = string>(variable: string, defaultValue: T): T;
 export function $env<T extends number>(variable: string): T | undefined;
-export function $env<T extends number>(variable: string, defaultValue: T): T;
+export function $env<T extends number>(variable: string, defaultValue: T): number;
 export function $env<T extends boolean>(variable: string): T | undefined;
-export function $env<T extends boolean>(variable: string, defaultValue: T): T;
+export function $env<T extends boolean>(variable: string, defaultValue: T): boolean;
 
 /**
  * Macro for rendering a block of code if the variable matches the specified value

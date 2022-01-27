@@ -1,11 +1,14 @@
-import ts, { factory } from "typescript";
+import ts, { Expression, factory } from "typescript";
 import { MacroIdentifier, TransformerConfiguration } from ".";
 
-export function shorthandConditionalIfEnv(node: ts.ConditionalExpression, config: TransformerConfiguration) {
+export function shorthandConditionalIfEnv(
+	node: ts.ConditionalExpression,
+	config: TransformerConfiguration,
+): Expression {
 	const { condition, whenTrue, whenFalse } = node;
 
 	if (ts.isBinaryExpression(condition)) {
-		const { left, right } = condition;
+		const { left, operatorToken, right } = condition;
 
 		if (
 			ts.isCallExpression(left) &&
@@ -33,7 +36,15 @@ export function shorthandConditionalIfEnv(node: ts.ConditionalExpression, config
 		} else if (ts.isIdentifier(left) && left.text === MacroIdentifier.NodeEnv) {
 			if (ts.isStringLiteral(right)) {
 				const valueOf = process.env["NODE_ENV"] ?? config.defaultEnvironment;
-				if (valueOf === right.text) {
+				let condition = false;
+
+				if (operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+					condition = valueOf !== right.text;
+				} else if (operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken) {
+					condition = valueOf === right.text;
+				}
+
+				if (condition) {
 					return whenTrue;
 				} else {
 					return whenFalse;
@@ -45,10 +56,13 @@ export function shorthandConditionalIfEnv(node: ts.ConditionalExpression, config
 	return node;
 }
 
-export function shorthandIfEnv(node: ts.IfStatement, config: TransformerConfiguration): ts.Statement | undefined {
+export function shorthandIfEnv(
+	node: ts.IfStatement,
+	config: TransformerConfiguration,
+): ts.Statement | ts.Statement[] | undefined {
 	const { expression, thenStatement, elseStatement } = node;
 	if (ts.isBinaryExpression(expression)) {
-		const { left, right } = expression;
+		const { left, operatorToken, right } = expression;
 
 		if (
 			ts.isCallExpression(left) &&
@@ -67,19 +81,51 @@ export function shorthandIfEnv(node: ts.IfStatement, config: TransformerConfigur
 						: config.defaultEnvironment);
 				if (ts.isStringLiteral(right)) {
 					if (valueOf === right.text) {
+						if (ts.isBlock(thenStatement) && config.ifStatementMode === "inline") {
+							return [...thenStatement.statements];
+						}
+
 						return thenStatement;
+					} else if (elseStatement) {
+						if (ts.isBlock(elseStatement) && config.ifStatementMode === "inline") {
+							return [...elseStatement.statements];
+						} else if (ts.isIfStatement(elseStatement)) {
+							return shorthandIfEnv(elseStatement, config);
+						} else {
+							return elseStatement;
+						}
 					} else {
-						return elseStatement;
+						return factory.createEmptyStatement();
 					}
 				}
 			}
 		} else if (ts.isIdentifier(left) && left.text === MacroIdentifier.NodeEnv) {
 			if (ts.isStringLiteral(right)) {
 				const valueOf = process.env["NODE_ENV"] ?? config.defaultEnvironment;
-				if (valueOf === right.text) {
+
+				let condition = false;
+				if (operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+					condition = valueOf !== right.text;
+				} else if (operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken) {
+					condition = valueOf === right.text;
+				}
+
+				if (condition) {
+					if (ts.isBlock(thenStatement) && config.ifStatementMode === "inline") {
+						return [...thenStatement.statements];
+					}
+
 					return thenStatement;
+				} else if (elseStatement) {
+					if (ts.isBlock(elseStatement) && config.ifStatementMode === "inline") {
+						return [...elseStatement.statements];
+					} else if (ts.isIfStatement(elseStatement)) {
+						return shorthandIfEnv(elseStatement, config);
+					} else {
+						return elseStatement;
+					}
 				} else {
-					return elseStatement;
+					return factory.createEmptyStatement();
 				}
 			}
 		}

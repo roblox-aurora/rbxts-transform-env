@@ -50,8 +50,6 @@ function warn(message: string) {
 	process.stdout.write(`[rbxts-transform-env] ${colors.yellow(message)}\n`);
 }
 
-const jsNumber = /^(\d+|0x[0-9A-Fa-f]+|[^_][0-9_]+[^_])$/;
-
 function isNumberUnionType(type: ts.TypeNode) {
 	return (
 		ts.isUnionTypeNode(type) && type.types.every((v) => ts.isLiteralTypeNode(v) && ts.isNumericLiteral(v.literal))
@@ -64,36 +62,45 @@ function isStringUnionType(type: ts.TypeNode) {
 	);
 }
 
+function createDefaultLiteralOrValue(expression: ts.Expression, value: string | undefined) {
+	if (ts.isNumericLiteral(expression)) {
+		return factory.createAsExpression(
+			factory.createNumericLiteral(value ?? expression.text),
+			factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+		);
+	} else if (ts.isStringLiteral(expression)) {
+		return factory.createAsExpression(
+			factory.createStringLiteral(value ?? expression.text),
+			factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+		);
+	} else if (expression.kind === ts.SyntaxKind.TrueKeyword || expression.kind === ts.SyntaxKind.FalseKeyword) {
+		return factory.createAsExpression(
+			value ? (value !== "false" ? factory.createTrue() : factory.createFalse()) : expression,
+			factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
+		);
+	}
+}
+
 function transformLiteral(call: ts.CallExpression, name: string, elseExpression?: ts.Expression) {
 	const { typeArguments } = call;
 	const value = process.env[name];
 
-	log("TransformLiteral " + name + ": " + value ?? "undefined");
-
 	// has type arguments?
 	if (typeArguments) {
 		const [litType] = typeArguments;
+
 		if (litType.kind === ts.SyntaxKind.StringKeyword || isStringUnionType(litType)) {
 			if (elseExpression && ts.isStringLiteral(elseExpression)) {
-				return factory.createAsExpression(
-					factory.createStringLiteral(value ?? elseExpression.text),
-					factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
-				);
+				return createDefaultLiteralOrValue(elseExpression, value);
 			} else if (value) {
 				return factory.createAsExpression(
 					factory.createStringLiteral(value),
 					factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
 				);
 			}
-		} else if (
-			(litType.kind === ts.SyntaxKind.NumberKeyword || isNumberUnionType(litType)) &&
-			value?.match(jsNumber)
-		) {
+		} else if (litType.kind === ts.SyntaxKind.NumberKeyword || isNumberUnionType(litType)) {
 			if (elseExpression && ts.isNumericLiteral(elseExpression)) {
-				return factory.createAsExpression(
-					factory.createNumericLiteral(value ?? elseExpression.text),
-					factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
-				);
+				return createDefaultLiteralOrValue(elseExpression, value);
 			} else if (value) {
 				return factory.createAsExpression(
 					factory.createNumericLiteral(value),
@@ -110,11 +117,8 @@ function transformLiteral(call: ts.CallExpression, name: string, elseExpression?
 			log("TransformLiteralKind NotSupported? " + ts.SyntaxKind[litType.kind]);
 		}
 	} else {
-		if (elseExpression && ts.isStringLiteral(elseExpression)) {
-			return factory.createAsExpression(
-				factory.createStringLiteral(value ?? elseExpression.text),
-				factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
-			);
+		if (elseExpression) {
+			return createDefaultLiteralOrValue(elseExpression, value);
 		} else if (value) {
 			return factory.createAsExpression(
 				factory.createStringLiteral(value),
@@ -271,11 +275,11 @@ function visitNode(
 		return node;
 	}
 
-	if (ts.isIfStatement(node) && config.shortcircuitEnvConditionals) {
+	if (ts.isIfStatement(node) && config.ifStatementMode !== "off") {
 		return shorthandIfEnv(node, config);
 	}
 
-	if (ts.isConditionalExpression(node) && config.shortcircuitEnvConditionals) {
+	if (ts.isConditionalExpression(node) && config.conditionalMode !== "off") {
 		return shorthandConditionalIfEnv(node, config);
 	}
 
@@ -284,7 +288,10 @@ function visitNode(
 	}
 
 	if (ts.isIdentifier(node) && !ts.isImportSpecifier(node.parent) && node.text === MacroIdentifier.NodeEnv) {
-		return factory.createStringLiteral(process.env.NODE_ENV ?? config.defaultEnvironment);
+		return factory.createAsExpression(
+			factory.createStringLiteral(process.env.NODE_ENV ?? config.defaultEnvironment),
+			factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+		);
 	}
 
 	return node;
@@ -292,13 +299,21 @@ function visitNode(
 
 export interface TransformerConfiguration {
 	files?: string[];
-	shortcircuitEnvConditionals?: boolean;
+
+	ifStatementMode: "block" | "inline" | "off";
+	conditionalMode: "inline" | "off";
 	defaultEnvironment: string;
+
 	verbose?: boolean;
 }
 
 export default function transform(program: ts.Program, userConfiguration: Partial<TransformerConfiguration>) {
-	const configuration = { defaultEnvironment: "production", ...userConfiguration };
+	const configuration: TransformerConfiguration = {
+		defaultEnvironment: "production",
+		ifStatementMode: "inline",
+		conditionalMode: "inline",
+		...userConfiguration,
+	};
 
 	// Load user custom config paths (if user specifies)
 	const { files, verbose } = configuration;
@@ -308,6 +323,8 @@ export default function transform(program: ts.Program, userConfiguration: Partia
 	if (verbose !== undefined) {
 		verboseLogging = verbose;
 	}
+
+	log("Environment: " + process.env.NODE_ENV ?? configuration.defaultEnvironment);
 
 	if (files !== undefined) {
 		for (const filePath of files) {

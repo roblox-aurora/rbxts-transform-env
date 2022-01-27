@@ -17,8 +17,6 @@
 		"rootDir": "src",
 		"outDir": "out",
 		"baseUrl": "src",
-		//"incremental": true,
-		//"tsBuildInfoFile": "out/tsconfig.tsbuildinfo",
 
 		"plugins": [
 			{
@@ -26,12 +24,12 @@
 				"files": [
 					"example.env"
 				],
+				"defaultEnvironment": "public-test",
 				"shortcircuitEnvConditionals": true,
-				"verbose": true
-			},
-			// {
-			// 	"transform": "rbxts-transform-debug"
-			// },
+				"verbose": true,
+				"ifStatementMode": "inline",
+				"conditionalMode": "inline",
+			}
 		],
 
 	}

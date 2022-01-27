@@ -44,3 +44,86 @@ local number = 20
 ```
 
 If you want multiple ENV files, you can use the `files` argument in your plugin.
+
+
+# Configuration
+To configure rbxts-transform-env, and customize how emit is handled there are specific "properties"
+
+### `ifStatementMode`
+This affects if/else statements containing `if ($NODE_ENV === y)` comparisons or `if ($env(x) === y)` conditionals.
+
+- `"block"` - Render the resulting conditional block as a block
+    ```ts
+    print("Some previous code");
+
+    // e.g. where NODE_ENV === "development"
+    if ($NODE_ENV === "development") {
+        print("Success!");
+    } else {
+        print("Failed!");
+    }
+    ```
+    will become
+    ```lua
+    print("Some previous code")
+    do
+        print("Success!")
+    end
+    ```
+- `"inline"` (default) - Render the resulting conditional block inline
+
+    ```ts
+    // e.g. where NODE_ENV === "development"
+    if ($NODE_ENV === "development") {
+        print("Success!");
+    } else {
+        print("Failed!");
+    }
+    ```
+    will become
+    ```lua
+    print("Some previous code")
+    print("Success!")
+    ```
+- `"off"` - No behaviour
+
+    ```ts
+    // e.g. where NODE_ENV === "development"
+    if ($NODE_ENV === "development") {
+        print("Success!");
+    } else {
+        print("Failed!");
+    }
+    ```
+    will become
+    ```lua
+    if "development" == "development" then
+        print("Success!")
+    else
+        print("Failed!")
+    end
+    ```
+
+### `conditionalMode`
+This affects conditional statements containing `$NODE_ENV === y ? trueValue : falseValue` comparisons or `$env(x) === y ? trueValue : falseValue` conditionals.
+
+- `"inline"` (default) - Render the resulting conditional block inline
+
+    ```ts
+    // e.g. where NODE_ENV === "development"
+    const test = $NODE_ENV === "development" ? "Yes!" : "Nooo!"
+    ```
+    will become
+    ```lua
+    local test = "Yes!"
+    ```
+- `"off"` - No behaviour
+
+    ```ts
+    // e.g. where NODE_ENV === "development"
+    const test = $NODE_ENV === "development" ? "Yes!" : "Nooo!"
+    ```
+    will become
+    ```lua
+    local test = if "development" == "development" then "Yes!" else "Nooo!"
+    ```
