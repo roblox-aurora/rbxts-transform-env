@@ -6,6 +6,7 @@ import fs from "fs";
 import colors from "colors";
 import { formatTransformerDebug, formatTransformerDiagnostic } from "./shared";
 import { shorthandConditionalIfEnv, shorthandIfEnv } from "./shorthandIfEnv";
+import { TransformerState } from "./class/transformerState";
 
 export const enum MacroIdentifier {
 	Env = "$env",
@@ -333,8 +334,11 @@ export default function transform(program: ts.Program, userConfiguration: Partia
 		}
 	}
 
-	return (context: ts.TransformationContext) => (file: ts.SourceFile) => {
-		const newSource = visitNodeAndChildren(file, program, context, configuration);
-		return newSource;
+	return (context: ts.TransformationContext) => {
+		const state = new TransformerState(program, context, configuration);
+		return (file: ts.SourceFile) => {
+			// const newSource = visitNodeAndChildren(file, program, context, configuration);
+			return state.transform(file);
+		};
 	};
 }
