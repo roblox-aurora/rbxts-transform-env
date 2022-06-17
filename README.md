@@ -3,6 +3,8 @@ Transformer for Roblox TypeScript compiler that allows getting values of process
 
 # Changes from 1.0
 - Removed `$ifEnv`. This should be doable via an if statement now.
+- `$env` has now been split up into `$env.string`, `$env.number` and `$env.boolean`. `$env` is no longer callable.
+    - The reason for this was the old behaviour of relying on the template argument for typing was a hidden "gotcha" that had issues. This is much more explicit.
 
 # Installation
 `npm i rbxts-transform-env`, then in your tsconfig.json:
