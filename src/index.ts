@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import ts from "typescript";
 import { TransformConfiguration, TransformState } from "./class/transformState";
 import { transformFile } from "./transform/transformFile";
 import fs from "fs";
+import { LoggerProvider } from "./class/logProvider";
 
 const DEFAULTS: TransformConfiguration = {
 	verbose: false,
@@ -23,7 +26,16 @@ export default function transform(program: ts.Program, userConfiguration: Transf
 	const SHOULD_DEBUG_EMIT = process.env.DEBUG_OUTPUT;
 
 	return (context: ts.TransformationContext): ((file: ts.SourceFile) => ts.Node) => {
-		const state = new TransformState(program, context, userConfiguration);
+		const logger = new LoggerProvider(
+			SHOULD_DEBUG_PROFILE !== undefined || userConfiguration.verbose!,
+			userConfiguration.verbose!,
+		);
+
+		if (logger.verbose) {
+			logger.write("\n");
+		}
+
+		const state = new TransformState(program, context, userConfiguration, logger);
 
 		return (file: ts.SourceFile) => {
 			const label = `$env:${file.fileName}`;

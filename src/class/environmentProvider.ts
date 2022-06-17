@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TransformState } from "./transformState";
 import dotenv from "dotenv";
@@ -19,6 +20,10 @@ export class EnvironmentProvider {
 		if (!this.variables.has("NODE_ENV")) {
 			this.variables.set("NODE_ENV", this.nodeEnvironment);
 		}
+
+		const varCount = this.variables.size;
+
+		state.logger.infoIfVerbose("Fetched " + varCount + " environment variables from session");
 	}
 
 	public get(name: string): string | undefined {

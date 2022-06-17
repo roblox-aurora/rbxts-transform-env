@@ -5,6 +5,7 @@ import { IDENTIFIER_MACROS } from "../transform/macros/identifier";
 import { CallMacro, IdentifierMacro, PropertyMacro } from "../transform/macros/macro";
 import { PROPERTY_MACROS } from "../transform/macros/property";
 import { EnvironmentProvider } from "./environmentProvider";
+import { LoggerProvider } from "./logProvider";
 import { SymbolProvider } from "./symbolProvider";
 
 export interface TransformConfiguration {
@@ -32,6 +33,7 @@ export class TransformState {
 		public readonly program: ts.Program,
 		public readonly context: ts.TransformationContext,
 		public readonly config: TransformConfiguration,
+		public readonly logger: LoggerProvider,
 	) {
 		this.typeChecker = program.getTypeChecker();
 		this.symbolProvider = new SymbolProvider(this);
