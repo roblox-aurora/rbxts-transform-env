@@ -28,19 +28,29 @@ export const EnvCallAsStringMacro: CallMacro = {
 			const variableName = variableArg.text;
 			const variableValue = environment.get(variableName);
 
-			const expression = toExpression(variableValue ?? getEnvDefaultValue(callExpression));
+			const expression =
+				toExpression(variableValue ?? getEnvDefaultValue(callExpression)) ??
+				factory.createIdentifier("undefined");
 
 			if (ts.isIfStatement(callExpression.parent) || ts.isBinaryExpression(callExpression.parent)) {
 				const prereqId = factory.createUniqueName(variableName);
 				state.prereqDeclaration(
 					prereqId,
-					expression ?? factory.createIdentifier("undefined"),
+					expression,
 					factory.createUnionTypeNode([
 						factory.createTypeReferenceNode("string"),
 						factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
 					]),
 				);
 				return prereqId;
+			} else if (ts.isVariableDeclaration(callExpression.parent)) {
+				return factory.createAsExpression(
+					expression,
+					factory.createUnionTypeNode([
+						factory.createTypeReferenceNode("string"),
+						factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+					]),
+				);
 			}
 
 			if (expression !== undefined) {

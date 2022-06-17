@@ -1,24 +1,9 @@
 import { $env, $NODE_ENV } from "../../..";
 
-const test = $env.string("USERPROFILE");
+export const NODE_ENV = $env.string("NODE_ENV", "development");
+export const IS_DEV = NODE_ENV === "development";
 
-$env.string("test", "withDefault");
-
-function testing() {
-	if ($env.boolean("USERPROFILE")) {
-		print("hi there??");
-	} else {
-		print("bye there");
-	}
-	
+if ($env.boolean("TEST")) {
+	const TEST_ENV = $env.number("TEST");
+	const IS_TEST = TEST_ENV === 20;
 }
-
-$NODE_ENV;
-if ($NODE_ENV === "production") {}
-if ("public-test" === $NODE_ENV) {}
-
-if ($env.boolean("USERPROFILE")) {
-	const seqAddr = $env.string("USERPROFILE");
-}
-
-const something = $NODE_ENV === "production" ? "yes":"no";
