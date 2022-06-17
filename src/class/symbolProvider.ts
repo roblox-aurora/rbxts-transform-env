@@ -8,15 +8,32 @@ import assert from "assert";
 
 export const moduleResolutionCache = new Map<string, string | false>();
 
+class NamespaceSymbol {
+	public readonly namespaceSymbol: ts.Symbol;
+	public constructor(public fileSymbol: FileSymbol) {
+		const namespaceSymbol = fileSymbol.get("$env");
+		this.namespaceSymbol = namespaceSymbol;
+	}
+
+	public get(name: string) {
+		const exportSymbol = this.namespaceSymbol.exports?.get(name as ts.__String);
+		assert(exportSymbol, "No file export by the name " + name);
+
+		return exportSymbol;
+	}
+}
+
 class FileSymbol {
 	private fileSymbol: ts.Symbol;
 	public readonly nodeEnvConstant: ts.Symbol;
+	public readonly envNamespace: NamespaceSymbol;
 
 	public constructor(public state: TransformState, public file: ts.SourceFile) {
 		const fileSymbol = this.state.getSymbol(file);
 		assert(fileSymbol, "Invalid file symbol");
 		this.fileSymbol = fileSymbol;
 		this.nodeEnvConstant = this.get("$NODE_ENV");
+		this.envNamespace = new NamespaceSymbol(this);
 	}
 
 	get(name: string) {

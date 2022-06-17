@@ -1,42 +1,28 @@
 /**
- * Macro for grabbing an environment variable
- *
- * E.g. if you set NODE_ENV=development
- * ```ts
- * const env = $env("NODE_ENV");
- * ```
- * will become
- * ```lua
- * local env = "development"
- * ```
- *
- * @param variable The environment variable
- * @param defaultValue The default value if the environment variable is not set.
+ * Macro namespace for grabbing an environment variable
  */
-export const $env: $env;
-
-export interface $env {
+export namespace $env {
 	/**
 	 * Attempts to fetch the given environment variable - if not set, it will be `undefined` or the default value if given.
 	 * @param name The name of the variable
 	 * @param defaultValue The default value to use if undefined
 	 */
-	string(name: string): string | undefined;
-	string(name: string, defaultValue: string): string;
+	export function string(name: string): string | undefined;
+	export function string(name: string, defaultValue: string): string;
 
 	/**
 	 * Converts the given environment variable to a boolean - if not set will be `false`.
 	 * @param name The environment variable to use
 	 */
-	boolean(name: string): boolean;
+	export function boolean(name: string): boolean;
 
 	/**
 	 * Attempts to convert the given environment variable to a number - if not set, it will be `undefined` or the default value if given.
 	 * @param name The name of the variable
 	 * @param defaultValue The default value to use if undefined
 	 */
-	number(name: string): number | undefined;
-	number(name: string, defaultValue: number): number;
+	export function number(name: string): number | undefined;
+	export function number(name: string, defaultValue: number): number;
 }
 
 /**

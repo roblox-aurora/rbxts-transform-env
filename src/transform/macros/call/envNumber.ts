@@ -13,15 +13,9 @@ export function getEnvDefaultValue(expression: ts.CallExpression): number | unde
 
 export const EnvCallAsNumberMacro: CallMacro = {
 	getSymbol(state: TransformState) {
-		const envSymbol = state.symbolProvider.moduleFile?.get("$env");
+		const envSymbol = state.symbolProvider.moduleFile?.envNamespace;
 		assert(envSymbol, "Could not find env macro symbol");
-
-		const type = state.typeChecker.getDeclaredTypeOfSymbol(envSymbol);
-
-		const numberConvertSymbol = type.getProperty("number");
-		assert(numberConvertSymbol);
-
-		return numberConvertSymbol;
+		return envSymbol.get("number");
 	},
 	transform(state: TransformState, callExpression: ts.CallExpression) {
 		const environment = state.environmentProvider;
