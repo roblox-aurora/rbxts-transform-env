@@ -1,6 +1,8 @@
 # rbxts-transform-env
 Transformer for Roblox TypeScript compiler that allows getting values of process.env as string literals
 
+# Changes from 1.0
+- Removed `$ifEnv`. This should be doable via an if statement now.
 
 # Installation
 `npm i rbxts-transform-env`, then in your tsconfig.json:
@@ -42,3 +44,5 @@ if ($NODE_ENV === "production") {
 }
 ```
 Any code in this if statement will not render (unless an else is specified) if the environment is not production. 
+
+This also applies to `$env.boolean`. Currently `$env.string` and `$env.number` do not shortcut, but this may change in future.
