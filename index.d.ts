@@ -16,11 +16,6 @@
 export const $env: $env;
 
 export interface $env {
-	/** @deprecated Use `$env.string`, `$env.number` or `$env.boolean` */
-	(variable: string): string | undefined;
-	/** @deprecated Use `$env.string`, `$env.number` or `$env.boolean` */
-	(variable: string, defaultValue: string): string;
-
 	/**
 	 * Attempts to fetch the given environment variable - if not set, it will be `undefined` or the default value if given.
 	 * @param name The name of the variable

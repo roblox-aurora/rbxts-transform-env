@@ -1,8 +1,8 @@
 import { $env, $NODE_ENV } from "../../..";
 
-$env("NODE_ENV");
+const test = $env.string("USERPROFILE");
 
-const test = $env.string("POOP");
+$env.string("test", "withDefault");
 
 function testing() {
 	if ($env.boolean("USERPROFILE")) {
@@ -17,7 +17,8 @@ $NODE_ENV;
 if ($NODE_ENV === "production") {}
 if ("public-test" === $NODE_ENV) {}
 
-if ($env.string("NODE_ENV") === "right") {}
-if ($env.string("NODE_ENV2")) {}
+if ($env.boolean("USERPROFILE")) {
+	const seqAddr = $env.string("USERPROFILE");
+}
 
 const something = $NODE_ENV === "production" ? "yes":"no";
