@@ -14,8 +14,6 @@ export function transformShortcutIfLiterals(state: TransformState, statement: ts
 					statement = statement.elseStatement ?? factory.createEmptyStatement();
 					break;
 			}
-		} else {
-			console.log(ts.SyntaxKind[statement.expression.kind]);
 		}
 	}
 

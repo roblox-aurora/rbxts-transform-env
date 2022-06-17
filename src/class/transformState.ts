@@ -1,18 +1,24 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import ts, { factory } from "typescript";
 import { CALL_MACROS } from "../transform/macros/call";
-import { CallMacro, PropertyMacro } from "../transform/macros/macro";
+import { IDENTIFIER_MACROS } from "../transform/macros/identifier";
+import { CallMacro, IdentifierMacro, PropertyMacro } from "../transform/macros/macro";
 import { PROPERTY_MACROS } from "../transform/macros/property";
 import { EnvironmentProvider } from "./environmentProvider";
 import { SymbolProvider } from "./symbolProvider";
 
 export interface TransformConfiguration {
 	verbose?: boolean;
+	defaultEnvironment: string;
+	shortCircuitNodeEnv: boolean;
 }
 
 export class TransformState {
 	private isMacrosSetup = false;
-	private callMacros = new Map<ts.Symbol, CallMacro>();
-	private propertyMacros = new Map<ts.Symbol, PropertyMacro>();
+
+	public readonly callMacros = new Map<ts.Symbol, CallMacro>();
+	public readonly propertyMacros = new Map<ts.Symbol, PropertyMacro>();
+	public readonly identifierMacros = new Map<ts.Symbol, IdentifierMacro>();
 
 	public readonly typeChecker: ts.TypeChecker;
 	public readonly options = this.program.getCompilerOptions();
@@ -58,6 +64,17 @@ export class TransformState {
 				this.propertyMacros.set(symbols, macro);
 			}
 		}
+
+		for (const macro of IDENTIFIER_MACROS) {
+			const symbols = macro.getSymbol(this);
+			if (Array.isArray(symbols)) {
+				for (const symbol of symbols) {
+					this.identifierMacros.set(symbol, macro);
+				}
+			} else {
+				this.identifierMacros.set(symbols, macro);
+			}
+		}
 	}
 
 	public getCallMacro(symbol: ts.Symbol): CallMacro | undefined {
@@ -78,12 +95,20 @@ export class TransformState {
 		}
 	}
 
+	private prereqId = new Map<string, ts.Identifier>();
 	private prereqStack = new Array<Array<ts.Statement>>();
 
 	public capture<T>(cb: () => T): [T, ts.Statement[]] {
 		this.prereqStack.push([]);
 		const result = cb();
-		return [result, this.prereqStack.pop()!];
+
+		const lastStack = this.prereqStack.pop()!;
+
+		if (this.prereqStack.length === 0) {
+			this.prereqId.clear();
+		}
+
+		return [result, lastStack];
 	}
 
 	public prereq(statement: ts.Statement): void {
@@ -96,13 +121,13 @@ export class TransformState {
 		if (stack) stack.push(...statements);
 	}
 
-	public prereqDeclaration(id: string | ts.Identifier, value: ts.Expression): void {
+	public prereqDeclaration(id: string | ts.Identifier, value: ts.Expression, type?: ts.TypeNode): void {
 		this.prereq(
 			factory.createVariableStatement(
 				undefined,
 				factory.createVariableDeclarationList(
-					[factory.createVariableDeclaration(id, undefined, undefined, value)],
-					ts.NodeFlags.Const,
+					[factory.createVariableDeclaration(id, undefined, type, value)],
+					ts.NodeFlags.Let,
 				),
 			),
 		);

@@ -8,12 +8,16 @@ export class EnvironmentProvider {
 
 	public constructor(private state: TransformState) {
 		const variables = dotenv.config().parsed;
-		this.nodeEnvironment = variables?.NODE_ENV ?? "production";
+		this.nodeEnvironment = variables?.NODE_ENV ?? state.config.defaultEnvironment;
 
 		if (variables) {
 			for (const [name, value] of Object.entries(process.env)) {
 				this.variables.set(name, value!);
 			}
+		}
+
+		if (!this.variables.has("NODE_ENV")) {
+			this.variables.set("NODE_ENV", this.nodeEnvironment);
 		}
 	}
 

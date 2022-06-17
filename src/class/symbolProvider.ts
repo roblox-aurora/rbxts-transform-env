@@ -10,11 +10,13 @@ export const moduleResolutionCache = new Map<string, string | false>();
 
 class FileSymbol {
 	private fileSymbol: ts.Symbol;
+	public readonly nodeEnvConstant: ts.Symbol;
 
 	public constructor(public state: TransformState, public file: ts.SourceFile) {
 		const fileSymbol = this.state.getSymbol(file);
 		assert(fileSymbol, "Invalid file symbol");
 		this.fileSymbol = fileSymbol;
+		this.nodeEnvConstant = this.get("$NODE_ENV");
 	}
 
 	get(name: string) {

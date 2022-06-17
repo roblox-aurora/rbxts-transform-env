@@ -67,8 +67,8 @@ export interface $env {
  * ```
  * IF NODE_ENV is 'development', otherwise nothing will be emitted.
  */
-export function $ifEnv(envVar: string, matches: string, runMatched: () => void): void;
-export function $ifEnv(envVar: string, matches: readonly string[], runMatched: (matched: string) => void): void;
+// export function $ifEnv(envVar: string, matches: string, runMatched: () => void): void;
+// export function $ifEnv(envVar: string, matches: readonly string[], runMatched: (matched: string) => void): void;
 
 /**
  * Returns the `NODE_ENV` variable

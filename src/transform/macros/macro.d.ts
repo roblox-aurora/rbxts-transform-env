@@ -23,3 +23,7 @@ export interface PropertyMacro extends Macro {
 		macro: MacroInfo,
 	): ts.Expression;
 }
+
+export interface IdentifierMacro extends Macro {
+	transform(state: TransformState, node: ts.Identifier, macro: MacroInfo): ts.Expression;
+}

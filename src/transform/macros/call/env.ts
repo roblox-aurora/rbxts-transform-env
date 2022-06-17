@@ -1,5 +1,5 @@
 import assert from "assert";
-import ts from "typescript";
+import ts, { factory } from "typescript";
 import { TransformState } from "../../../class/transformState";
 import { toExpression } from "../../../util/toAst";
 import { CallMacro } from "../macro";
@@ -35,6 +35,19 @@ export const EnvCallAsStringMacro: CallMacro = {
 			const variableValue = environment.get(variableName);
 
 			const expression = toExpression(variableValue ?? getEnvDefaultValue(callExpression));
+
+			if (ts.isIfStatement(callExpression.parent) || ts.isBinaryExpression(callExpression.parent)) {
+				const prereqId = factory.createUniqueName(variableName);
+				state.prereqDeclaration(
+					prereqId,
+					expression ?? factory.createIdentifier("undefined"),
+					factory.createUnionTypeNode([
+						factory.createTypeReferenceNode("string"),
+						factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+					]),
+				);
+				return prereqId;
+			}
 
 			if (expression !== undefined) {
 				return expression;

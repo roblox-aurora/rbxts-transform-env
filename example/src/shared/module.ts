@@ -1,4 +1,4 @@
-import { $env } from "../../..";
+import { $env, $NODE_ENV } from "../../..";
 
 $env("NODE_ENV");
 
@@ -13,4 +13,11 @@ function testing() {
 	
 }
 
-if ($env.boolean("USERPROFILE")) {}
+$NODE_ENV;
+if ($NODE_ENV === "production") {}
+if ("public-test" === $NODE_ENV) {}
+
+if ($env.string("NODE_ENV") === "right") {}
+if ($env.string("NODE_ENV2")) {}
+
+const something = $NODE_ENV === "production" ? "yes":"no";

@@ -1,4 +1,4 @@
-import ts, { factory, SyntaxKind } from "typescript";
+import ts from "typescript";
 import { TransformState } from "../class/transformState";
 import { transformStatement } from "./transformStatement";
 

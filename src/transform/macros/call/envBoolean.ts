@@ -1,5 +1,5 @@
 import assert from "assert";
-import ts, { factory } from "typescript";
+import ts from "typescript";
 import { TransformState } from "../../../class/transformState";
 import { toExpression } from "../../../util/toAst";
 import { CallMacro } from "../macro";

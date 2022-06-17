@@ -1,0 +1,16 @@
+import { $env, $NODE_ENV } from "../../..";
+"public-test";
+const test = undefined;
+function testing() {
+    {
+        print("hi there??");
+    }
+}
+"public-test" as string;
+;
+{ }
+let NODE_ENV_1: string | undefined = "public-test";
+if (NODE_ENV_1 === "right") { }
+let NODE_ENV2_1: string | undefined = undefined;
+if (NODE_ENV2_1) { }
+const something = false ? "yes" : "no";
