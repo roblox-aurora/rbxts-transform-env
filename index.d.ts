@@ -13,12 +13,36 @@
  * @param variable The environment variable
  * @param defaultValue The default value if the environment variable is not set.
  */
-export function $env<T extends string = string>(variable: string): T | undefined;
-export function $env<T extends string = string>(variable: string, defaultValue: T): T;
-export function $env<T extends number>(variable: string): T | undefined;
-export function $env<T extends number>(variable: string, defaultValue: T): number;
-export function $env<T extends boolean>(variable: string): T | undefined;
-export function $env<T extends boolean>(variable: string, defaultValue: T): boolean;
+export const $env: $env;
+
+export interface $env {
+	/** @deprecated Use `$env.string`, `$env.number` or `$env.boolean` */
+	(variable: string): string | undefined;
+	/** @deprecated Use `$env.string`, `$env.number` or `$env.boolean` */
+	(variable: string, defaultValue: string): string;
+
+	/**
+	 * Attempts to fetch the given environment variable - if not set, it will be `undefined` or the default value if given.
+	 * @param name The name of the variable
+	 * @param defaultValue The default value to use if undefined
+	 */
+	string(name: string): string | undefined;
+	string(name: string, defaultValue: string): string;
+
+	/**
+	 * Converts the given environment variable to a boolean - if not set will be `false`.
+	 * @param name The environment variable to use
+	 */
+	boolean(name: string): boolean;
+
+	/**
+	 * Attempts to convert the given environment variable to a number - if not set, it will be `undefined` or the default value if given.
+	 * @param name The name of the variable
+	 * @param defaultValue The default value to use if undefined
+	 */
+	number(name: string): number | undefined;
+	number(name: string, defaultValue: number): number;
+}
 
 /**
  * Macro for rendering a block of code if the variable matches the specified value
