@@ -253,7 +253,6 @@ function visitNode(
 		return factory.updateImportDeclaration(
 			node,
 			undefined,
-			undefined,
 			node.importClause
 				? factory.updateImportClause(
 						node.importClause,
@@ -263,6 +262,7 @@ function visitNode(
 				  )
 				: undefined,
 			node.moduleSpecifier,
+			undefined,
 		);
 	}
 
