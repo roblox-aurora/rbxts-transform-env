@@ -7,6 +7,7 @@
 		"jsxFactory": "Roact.createElement",
 		"module": "commonjs",
 		"moduleResolution": "Node",
+		"moduleDetection": "force",
 		"noLib": true,
 		"resolveJsonModule": true,
 		"strict": true,

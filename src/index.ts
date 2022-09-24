@@ -30,7 +30,32 @@ export default function transform(program: ts.Program, userConfiguration: Transf
 		const state = new TransformState(program, context, userConfiguration, logger);
 
 		return (file: ts.SourceFile) => {
+			let printFile = false;
+
+			const leading = ts.getLeadingCommentRanges(file.getFullText(), 0);
+			if (leading) {
+				const metaComment = "// @rbxts-transform-env";
+
+				const srcFileText = file.getFullText();
+				for (const leadingComment of leading) {
+					const comment = srcFileText.substring(leadingComment.pos, leadingComment.end);
+					if (comment.startsWith(metaComment)) {
+						const metaTags = comment.substring(metaComment.length + 1).split(" ");
+						if (metaTags.includes("debug:print_file")) {
+							printFile = true;
+						}
+						break;
+					}
+				}
+			}
+
 			const result = transformFile(state, file);
+
+			if (printFile) {
+				const printer = ts.createPrinter({});
+				console.log(printer.printFile(result));
+			}
+
 			return result;
 		};
 	};

@@ -4,13 +4,15 @@ import { TransformState } from "../../../class/transformState";
 import { toExpression } from "../../../util/toAst";
 import { CallMacro } from "../macro";
 
-export function getEnvDefaultValue(expression: ts.CallExpression): string | undefined {
+export function getEnvDefaultValue(expression: ts.CallExpression): ts.Expression | undefined {
 	const [, defaultArgument] = expression.arguments;
 	if (
 		defaultArgument !== undefined &&
 		(ts.isStringLiteral(defaultArgument) || ts.isNumericLiteral(defaultArgument))
 	) {
-		return defaultArgument.text;
+		return factory.createStringLiteral(defaultArgument.text);
+	} else if (defaultArgument !== undefined && ts.isTemplateLiteral(defaultArgument)) {
+		return defaultArgument;
 	}
 }
 
@@ -22,35 +24,54 @@ export const EnvCallAsStringMacro: CallMacro = {
 	},
 	transform(state: TransformState, callExpression: ts.CallExpression) {
 		const environment = state.environmentProvider;
-		const [variableArg] = callExpression.arguments;
+		const [variableArg, variableDefault] = callExpression.arguments;
+		const printer = ts.createPrinter({});
 
 		if (ts.isStringLiteral(variableArg)) {
 			const variableName = variableArg.text;
 			const variableValue = environment.get(variableName);
 
 			const expression =
-				toExpression(variableValue ?? getEnvDefaultValue(callExpression)) ??
+				(variableValue !== undefined ? toExpression(variableValue) : getEnvDefaultValue(callExpression)) ??
 				factory.createIdentifier("undefined");
+
+			if (state.config.verbose) {
+				state.logger.infoIfVerbose(
+					`Transform variable ${variableName} to ${printer.printNode(
+						ts.EmitHint.Expression,
+						expression,
+						callExpression.getSourceFile(),
+					)}`,
+				);
+				console.log("\t", callExpression.getSourceFile().fileName);
+			}
+			// console.log(variableName, ts.SyntaxKind[expression.kind]);
 
 			if (ts.isIfStatement(callExpression.parent) || ts.isBinaryExpression(callExpression.parent)) {
 				const prereqId = factory.createUniqueName(variableName);
 				state.prereqDeclaration(
 					prereqId,
 					expression,
-					factory.createUnionTypeNode([
-						factory.createTypeReferenceNode("string"),
-						factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
-					]),
+					variableDefault === undefined
+						? factory.createUnionTypeNode([
+								factory.createTypeReferenceNode("string"),
+								factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+						  ])
+						: undefined,
 				);
 				return prereqId;
 			} else if (ts.isVariableDeclaration(callExpression.parent)) {
-				return factory.createAsExpression(
-					expression,
-					factory.createUnionTypeNode([
-						factory.createTypeReferenceNode("string"),
-						factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
-					]),
-				);
+				if (variableDefault === undefined) {
+					return factory.createAsExpression(
+						expression,
+						factory.createUnionTypeNode([
+							factory.createTypeReferenceNode("string"),
+							factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+						]),
+					);
+				} else {
+					return expression;
+				}
 			}
 
 			if (expression !== undefined) {
