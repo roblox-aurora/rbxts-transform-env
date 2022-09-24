@@ -57,7 +57,7 @@ export const EnvCallAsStringMacro: CallMacro = {
 								factory.createTypeReferenceNode("string"),
 								factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
 						  ])
-						: undefined,
+						: factory.createTypeReferenceNode("string"),
 				);
 				return prereqId;
 			} else if (ts.isVariableDeclaration(callExpression.parent)) {
@@ -70,7 +70,7 @@ export const EnvCallAsStringMacro: CallMacro = {
 						]),
 					);
 				} else {
-					return expression;
+					return factory.createAsExpression(expression, factory.createTypeReferenceNode("string"));
 				}
 			}
 
