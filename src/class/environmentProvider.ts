@@ -8,8 +8,8 @@ export class EnvironmentProvider {
 	private variables = new Map<string, string>();
 
 	public constructor(private state: TransformState) {
-		const variables = dotenv.config().parsed;
-		this.nodeEnvironment = variables?.NODE_ENV ?? state.config.defaultEnvironment;
+		const variables = dotenv.config();
+		this.nodeEnvironment = process.env.NODE_ENV ?? state.config.defaultEnvironment;
 
 		if (variables) {
 			for (const [name, value] of Object.entries(process.env)) {
