@@ -37,12 +37,12 @@ export class EnvironmentProvider {
 		}
 	}
 
-	public parseAsBoolean(name: string): boolean {
+	public parseAsBoolean(name: string): boolean | undefined {
 		const value = this.get(name);
 		if (value) {
 			return value.trim().toLowerCase() !== "false";
 		} else {
-			return false;
+			return undefined;
 		}
 	}
 }

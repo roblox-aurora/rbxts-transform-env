@@ -11,13 +11,31 @@ export namespace $env {
 	export function string(name: string, defaultValue: string): string;
 
 	/**
-	 * Converts the given environment variable to a boolean - if not set will be `false`.
+	 * Converts the given environment variable to a boolean - if not set will be set `defaultValue` or `false`.
+	 *
+	 * ```ts
+	 * if ($env.boolean("SOME_DEBUG_FLAG")) {
+	 * 	// Use some debugging feature :-)
+	 * }
+	 * ```
+	 *
+	 * This can also be used to check if an environment variable is set, e.g.
+	 *
+	 * ```ts
+	 * if ($env.boolean("ANALYTICS_API_URL")) {
+	 * 	const ANALYTICS_API_URL = $env.string("ANALYTICS_API_URL")!;
+	 * 	// Use our analytics API...
+	 * }
+	 * ```
 	 * @param name The environment variable to use
+	 * @param defaultValue The default value to use - otherwise `false`
 	 */
 	export function boolean(name: string): boolean;
+	export function boolean(name: string, defaultValue: boolean): boolean;
 
 	/**
 	 * Attempts to convert the given environment variable to a number - if not set, it will be `undefined` or the default value if given.
+	 *
 	 * @param name The name of the variable
 	 * @param defaultValue The default value to use if undefined
 	 */

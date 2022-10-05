@@ -25,7 +25,7 @@
 				"files": [
 					"example.env"
 				],
-				"defaultEnvironment": "public-test",
+				"@@defaultEnvironment": "public-test",
 				"ifStatementMode": "inline",
 				"conditionalMode": "inline",
 			}

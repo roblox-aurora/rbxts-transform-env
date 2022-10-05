@@ -23,9 +23,13 @@ export const EnvCallAsBooleanMacro: CallMacro = {
 
 		if (ts.isStringLiteral(variableArg)) {
 			const variableName = variableArg.text;
-			const variableValue = environment.parseAsBoolean(variableName);
+			let variableValue = environment.parseAsBoolean(variableName);
 
-			const value = variableValue ?? getEnvDefaultValue(callExpression);
+			if (variableValue === undefined) {
+				variableValue = getEnvDefaultValue(callExpression) ?? false;
+			}
+
+			const value = variableValue;
 			const expression = toExpression(value);
 
 			if (expression !== undefined) {
