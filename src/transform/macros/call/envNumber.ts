@@ -19,7 +19,7 @@ export const EnvCallAsNumberMacro: CallMacro = {
 	},
 	transform(state: TransformState, callExpression: ts.CallExpression) {
 		const environment = state.environmentProvider;
-		const [variableArg] = callExpression.arguments;
+		const [variableArg, defaultValueArg] = callExpression.arguments;
 
 		if (ts.isStringLiteral(variableArg)) {
 			const variableName = variableArg.text;
@@ -34,19 +34,23 @@ export const EnvCallAsNumberMacro: CallMacro = {
 				state.prereqDeclaration(
 					prereqId,
 					expression,
-					factory.createUnionTypeNode([
-						factory.createTypeReferenceNode("number"),
-						factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
-					]),
+					defaultValueArg !== undefined
+						? factory.createTypeReferenceNode("number")
+						: factory.createUnionTypeNode([
+								factory.createTypeReferenceNode("number"),
+								factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+						  ]),
 				);
 				return prereqId;
 			} else if (ts.isVariableDeclaration(callExpression.parent)) {
 				return factory.createAsExpression(
 					expression,
-					factory.createUnionTypeNode([
-						factory.createTypeReferenceNode("number"),
-						factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
-					]),
+					defaultValueArg !== undefined
+						? factory.createTypeReferenceNode("number")
+						: factory.createUnionTypeNode([
+								factory.createTypeReferenceNode("number"),
+								factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+						  ]),
 				);
 			}
 

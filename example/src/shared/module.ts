@@ -1,3 +1,4 @@
+// @rbxts-transform-env debug:print_file
 import { $env, $NODE_ENV } from "../../..";
 
 export const NODE_ENV = $env.string("NODE_ENV", "development");
@@ -17,5 +18,9 @@ if ($env.boolean("ANALYTICS_API_URL")) {
 	const URI = `${USE_HTTPS ? "https" : "http"}://${ANALYTICS_API_URL}:${ANALYTICS_API_PORT}`;
 	print("Our analytics URI is: ", URI);
 }
+
+export const DefaultValue = $env.number("DEFAULT_VALUE", 0.05);
+
+const test: number = DefaultValue;
 
 $NODE_ENV;
