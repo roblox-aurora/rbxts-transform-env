@@ -30,6 +30,10 @@ export class EnvironmentProvider {
 		return this.variables.get(name);
 	}
 
+	public has(name: string): boolean {
+		return this.variables.has(name);
+	}
+
 	public getAsNumber(name: string): number | undefined {
 		const value = this.get(name);
 		if (value && value.match(/\d+/gi)) {

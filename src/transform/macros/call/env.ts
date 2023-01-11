@@ -16,6 +16,11 @@ export function getEnvDefaultValue(expression: ts.CallExpression): ts.Expression
 	}
 }
 
+export function isUnsafeToPrint(variable: string): boolean {
+	const valueLower = variable.toLowerCase();
+	return valueLower.includes("token") || valueLower.includes("api") || valueLower.includes("key");
+}
+
 export const EnvCallAsStringMacro: CallMacro = {
 	getSymbol(state: TransformState) {
 		const envSymbol = state.symbolProvider.moduleFile?.envNamespace;
@@ -35,13 +40,13 @@ export const EnvCallAsStringMacro: CallMacro = {
 				(variableValue !== undefined ? toExpression(variableValue) : getEnvDefaultValue(callExpression)) ??
 				factory.createIdentifier("undefined");
 
-			if (state.config.verbose) {
+			if (state.config.verbose && !variableName.toLowerCase().includes("token")) {
 				state.logger.infoIfVerbose(
-					`Transform variable ${variableName} to ${printer.printNode(
-						ts.EmitHint.Expression,
-						expression,
-						callExpression.getSourceFile(),
-					)}`,
+					`Transform variable ${variableName} to ${
+						isUnsafeToPrint(variableName)
+							? "***"
+							: printer.printNode(ts.EmitHint.Expression, expression, callExpression.getSourceFile())
+					}`,
 				);
 				console.log("\t", callExpression.getSourceFile().fileName);
 			}

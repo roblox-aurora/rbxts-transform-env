@@ -10,6 +10,12 @@ export namespace $env {
 	export function string(name: string): string | undefined;
 	export function string(name: string, defaultValue: string): string;
 
+	// /**
+	//  * Attempts to fetch the given environment variable as a string - will throw a compiler error otherwise.
+	//  * @param name The name of the environment variable to expect
+	//  */
+	// export function expectString<_TCompilerError extends string>(name: string, message?: _TCompilerError): string;
+
 	/**
 	 * Converts the given environment variable to a boolean - if not set will be set `defaultValue` or `false`.
 	 *
@@ -41,6 +47,12 @@ export namespace $env {
 	 */
 	export function number(name: string): number | undefined;
 	export function number(name: string, defaultValue: number): number;
+
+	// /**
+	//  * Attempts to fetch the given environment variable as a number - will throw a compiler error otherwise.
+	//  * @param name The name of the environment variable to expect
+	//  */
+	// export function expectNumber(name: string): number;
 }
 
 /**

@@ -8,10 +8,13 @@ import { EnvironmentProvider } from "./environmentProvider";
 import { LoggerProvider } from "./logProvider";
 import { SymbolProvider } from "./symbolProvider";
 
+type Handler = "warn" | "error" | "errorOnProduction";
+
 export interface TransformConfiguration {
 	verbose?: boolean;
 	defaultEnvironment: string;
 	shortCircuitNodeEnv: boolean;
+	expectedVariables: Record<string, [Handler, string] | Handler> | undefined;
 }
 
 export class TransformState {

@@ -20,6 +20,9 @@ if ($env.boolean("ANALYTICS_API_URL")) {
 }
 
 export const DefaultValue = $env.number("DEFAULT_VALUE", 0.05);
+export const DefaultString = $env.string("DEFAULT_STR");
+
+// $env.expectString("TEST", "A 'TEST' variable is required in your environment.");
 
 const test: number = DefaultValue;
 
