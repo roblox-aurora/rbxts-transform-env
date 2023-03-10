@@ -18,14 +18,19 @@ export function getEnvDefaultValue(expression: ts.CallExpression): ts.Expression
 
 export function isUnsafeToPrint(variable: string): boolean {
 	const valueLower = variable.toLowerCase();
-	return valueLower.includes("token") || valueLower.includes("api") || valueLower.includes("key");
+	return (
+		valueLower.includes("token") ||
+		valueLower.includes("secret") ||
+		valueLower.includes("api") ||
+		valueLower.includes("key")
+	);
 }
 
 export const EnvCallAsStringMacro: CallMacro = {
 	getSymbol(state: TransformState) {
 		const envSymbol = state.symbolProvider.moduleFile?.envNamespace;
 		assert(envSymbol, "Could not find env macro symbol");
-		return envSymbol.get("string");
+		return [envSymbol.get("string"), envSymbol.get("expectString")];
 	},
 	transform(state: TransformState, callExpression: ts.CallExpression) {
 		const environment = state.environmentProvider;
@@ -40,7 +45,7 @@ export const EnvCallAsStringMacro: CallMacro = {
 				(variableValue !== undefined ? toExpression(variableValue) : getEnvDefaultValue(callExpression)) ??
 				factory.createIdentifier("undefined");
 
-			if (state.config.verbose && !variableName.toLowerCase().includes("token")) {
+			if (state.config.verbose) {
 				state.logger.infoIfVerbose(
 					`Transform variable ${variableName} to ${
 						isUnsafeToPrint(variableName)
