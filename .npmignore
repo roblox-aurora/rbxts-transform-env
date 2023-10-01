@@ -1,4 +1,4 @@
 *
-!out/*.js
+!out/**/*.js
 !*.js
 !*.d.ts

@@ -4,19 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rbxtsc"
+    "build": "rbxtsc",
+    "build:dev": "env-cmd -e development rbxtsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rbxts/compiler-types": "^1.0.0-types.0",
+    "@rbxts/compiler-types": "^2.0.3-types.0",
     "@rbxts/types": "^1.0.428",
     "rbxts-transform-debug": "^0.1.0"
   },
   "dependencies": {
+    "env-cmd": "^10.1.0",
     "rbxts-transform-env": "file:..",
-    "roblox-ts": "^1.2.1",
-    "typescript": "^4.3.5"
+    "roblox-ts": "^2.0.3",
+    "typescript": "^4.8.2"
   }
 }

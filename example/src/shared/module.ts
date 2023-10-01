@@ -1,31 +1,29 @@
-import { $env, $ifEnv, $NODE_ENV } from "../../..";
-// import {$dbg} from "rbxts-transform-debug";
+// @rbxts-transform-env debug:print_file
+import { $env, $NODE_ENV } from "../../..";
 
-export function makeHello(name: string) {
-	return $NODE_ENV === "development" ? `Testing ${$NODE_ENV}, yes?` : "no";
+export const NODE_ENV = $env.string("NODE_ENV", "development");
+export const ANOTHER_VAR = $env.string("TEST2", "NOPE");
+export const IS_DEV = NODE_ENV === "development";
+
+if ($env.boolean("FALSY", true)) {
+	const TEST_ENV = $env.number("TEST");
+	const IS_TEST = TEST_ENV === 20;
 }
 
-const test = $env<number>("TEST3");
+if ($env.boolean("ANALYTICS_API_URL")) {
+	const ANALYTICS_API_URL = $env.string("ANALYTICS_API_URL")!;
+	const ANALYTICS_API_PORT = $env.number("ANALYTICS_API_PORT", 3000);
+	const USE_HTTPS = $env.boolean("ANALYTICS_USE_HTTPS", true);
 
-const test2 = $env<string>("TEST", "boss") === "hi there";
-const test3 = $env<"development" | "production">("NODE_ENV", "production")
-
-if ($env<string>("NODE_ENV", "development") === "development") {
-	print("hi");
-} else {
-	print("not matching");
+	const URI = `${USE_HTTPS ? "https" : "http"}://${ANALYTICS_API_URL}:${ANALYTICS_API_PORT}`;
+	print("Our analytics URI is: ", URI);
 }
 
-if ($NODE_ENV === "development") {
-	print("hi NODE_ENV");
-}
+export const DefaultValue = $env.number("DEFAULT_VALUE", 0.05);
+export const DefaultString = $env.string("DEFAULT_STR");
 
-print("test");
+// $env.expectString("TEST", "A 'TEST' variable is required in your environment.");
 
-$ifEnv("NODE_ENV", ["development"], (value) => { print(value) });
-$ifEnv("NODE_ENV", "development", function() {
-	print("Hi!");
-	// $dbg("Test");
-})
+const test: number = DefaultValue;
 
-$ifEnv("NODE_ENV", "blah", () => {})
+$NODE_ENV;

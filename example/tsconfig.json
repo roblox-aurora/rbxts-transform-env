@@ -7,6 +7,7 @@
 		"jsxFactory": "Roact.createElement",
 		"module": "commonjs",
 		"moduleResolution": "Node",
+		"moduleDetection": "force",
 		"noLib": true,
 		"resolveJsonModule": true,
 		"strict": true,
@@ -17,8 +18,6 @@
 		"rootDir": "src",
 		"outDir": "out",
 		"baseUrl": "src",
-		//"incremental": true,
-		//"tsBuildInfoFile": "out/tsconfig.tsbuildinfo",
 
 		"plugins": [
 			{
@@ -26,12 +25,10 @@
 				"files": [
 					"example.env"
 				],
-				"shortcircuitEnvConditionals": true,
-				"verbose": true
-			},
-			// {
-			// 	"transform": "rbxts-transform-debug"
-			// },
+				"@@defaultEnvironment": "public-test",
+				"ifStatementMode": "inline",
+				"conditionalMode": "inline",
+			}
 		],
 
 	}

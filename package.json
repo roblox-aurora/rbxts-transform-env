@@ -1,37 +1,40 @@
 {
-  "name": "rbxts-transform-env",
-  "version": "1.0.0-rc.0",
-  "description": "Transformer for Roblox TypeScript compiler that allows getting values of process.env as string literals",
-  "main": "out/index.js",
-  "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/roblox-aurora/rbxts-transform-env.git"
-  },
-  "keywords": [],
-  "author": "vorlias",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/roblox-aurora/rbxts-transform-env/issues"
-  },
-  "homepage": "https://github.com/roblox-aurora/rbxts-transform-env#readme",
-  "dependencies": {
-    "chalk": "^4.1.1",
-    "colors": "^1.4.0",
-    "dotenv": "^8.2.0",
-    "typescript": "=4.3.5"
-  },
-  "devDependencies": {
-    "@rbxts/types": "^1.0.428",
-    "@typescript-eslint/eslint-plugin": "^4.9.0",
-    "@typescript-eslint/parser": "^4.9.0",
-    "eslint": "^7.14.0",
-    "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "prettier": "^2.2.1",
-    "@types/node": "^14.14.11"
-  }
+	"name": "rbxts-transform-env",
+	"version": "2.2.0",
+	"description": "Transformer for Roblox TypeScript compiler that allows getting values of process.env as string literals",
+	"main": "out/index.js",
+	"scripts": {
+		"build": "tsc",
+		"yalc": "tsc && yalc push",
+		"prepublish": "npm run build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/roblox-aurora/rbxts-transform-env.git"
+	},
+	"keywords": [],
+	"author": "vorlias",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/roblox-aurora/rbxts-transform-env/issues"
+	},
+	"homepage": "https://github.com/roblox-aurora/rbxts-transform-env#readme",
+	"dependencies": {
+		"chalk": "^4.1.1",
+		"colors": "^1.4.0",
+		"dotenv": "^8.2.0",
+		"ts-expose-internals": "=5.2.2",
+		"typescript": "~5.2.2"
+	},
+	"devDependencies": {
+		"@rbxts/types": "^1.0.428",
+		"@types/node": "^14.14.11",
+		"@types/yargs": "^17.0.8",
+		"@typescript-eslint/eslint-plugin": "^4.9.0",
+		"@typescript-eslint/parser": "^4.9.0",
+		"eslint": "^7.14.0",
+		"eslint-config-prettier": "^6.15.0",
+		"eslint-plugin-prettier": "^3.1.4",
+		"prettier": "^2.2.1"
+	}
 }
