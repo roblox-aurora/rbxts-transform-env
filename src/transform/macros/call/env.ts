@@ -30,7 +30,7 @@ export const EnvCallAsStringMacro: CallMacro = {
 	getSymbol(state: TransformState) {
 		const envSymbol = state.symbolProvider.moduleFile?.envNamespace;
 		assert(envSymbol, "Could not find env macro symbol");
-		return [envSymbol.get("string"), envSymbol.get("expectString")];
+		return envSymbol.get("string");
 	},
 	transform(state: TransformState, callExpression: ts.CallExpression) {
 		const environment = state.environmentProvider;
