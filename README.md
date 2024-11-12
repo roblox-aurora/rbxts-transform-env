@@ -67,6 +67,7 @@ Below is a matrix of versions to roblox-ts versions. This should be approximatel
 
 | roblox-ts            | rbxts-transform-env | typescript |
 | -------------------- | ------------------- | ---------- |
+| `3.0.0`              | `3.0.0` (`latest`)  | `~5.5.3`   |
 | `2.2.0`              | `2.2.0` (`latest`)  | `~5.2.2`   |
 | ` 2.1.x`             | `2.1.0` (`beta`)    | `~4.9.5`   |
 | ` 2.0.x`             | `2.0.0`             | `~4.8.2`   |
